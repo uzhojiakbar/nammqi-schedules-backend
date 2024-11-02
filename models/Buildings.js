@@ -5,6 +5,7 @@ const buildingSchema = new mongoose.Schema({
   address: { type: String, required: true },
   floors: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
+  createdBy: { type: String, default: "admin" },
 });
 
 const Building = mongoose.model("Building", buildingSchema);
