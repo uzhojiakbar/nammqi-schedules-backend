@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 
 const buildingSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  address: { type: String, required: true },
-  floors: { type: Number, required: true },
+  name: { type: String, required: true, unique: true },
+  filial: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  createdBy: { type: String, default: "admin" },
+  createBy: { type: String, default: "admin username" },
 });
 
 const Building = mongoose.model("Building", buildingSchema);

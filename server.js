@@ -16,6 +16,27 @@ app.use("/api/auth", authRoutes);
 app.use("/api/buildings", buildingRoutes);
 app.use("/api/users", userRoutes);
 
+app.get("/", (req, res) => {
+  res.send(`
+  <head>
+    <title>NAMMQI SCHEDULES - 2024</title>
+    <style>
+      *{
+        color:white;
+      }
+
+      body{
+        background-color: black;
+        color:white;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Server xolati yoniq</h1>
+  </body>
+  `);
+});
+
 // MongoDB
 mongoose
   .connect(process.env.MONGO_URI, {

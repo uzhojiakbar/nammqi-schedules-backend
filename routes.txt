@@ -1,0 +1,9 @@
+/api/auth
+    /api/auth/register (post)
+    /api/auth/login (post)
+
+/api/users
+    /api/users/all (get)
+
+/api/buildings
+    /api/buildings/add (post)
