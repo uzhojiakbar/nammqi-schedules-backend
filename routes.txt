@@ -6,4 +6,4 @@
     /api/users/all (get)
 
 /api/buildings
-    /api/buildings/add (post)
+    /api/buildings/ (post)
