@@ -38,7 +38,7 @@ function authenticateToken(req, res, next) {
       req.token = token;
 
       const selectUserQuery = `
-        SELECT id, username, firstname, lastname, group_name, role
+        SELECT id, username, firstname, lastname, role
         FROM users WHERE id = ?
       `;
 

@@ -2,22 +2,14 @@ const bcrypt = require("bcrypt");
 const { CustomError } = require("../../components/customError");
 
 class RegisterValidation {
-  constructor({
-    username,
-    password,
-    firstname,
-    lastname,
-    group,
-    role = "user",
-  }) {
+  constructor({ username, password, firstname, lastname, role = "user" }) {
     this.validateFirstname(firstname);
     this.validatePassword(password);
 
     this.username = username.toLowerCase().trim();
     this.password = this.hashPassword(password.trim()); // 🔥 bu yerda hash bo‘ladi
-    this.firstname = firstname.trim();
-    this.lastname = lastname.trim();
-    this.group = group.trim();
+    this.firstname = firstname?.trim();
+    this.lastname = lastname?.trim();
     this.role = "user";
   }
 

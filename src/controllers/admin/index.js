@@ -4,7 +4,7 @@ const { db } = require("../../db/db");
 const getAllUsers = (req, res) => {
   const { firstname, lastname, username } = req.query;
 
-  let baseQuery = `SELECT id, username, firstname, lastname, group_name, role FROM users`;
+  let baseQuery = `SELECT id, username, firstname, lastname,  role FROM users`;
   const conditions = [];
   const params = [];
 

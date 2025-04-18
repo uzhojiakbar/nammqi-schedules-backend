@@ -6,7 +6,7 @@ const {
 } = require("../auth/tokenController");
 
 const getMe = (req, res) => {
-  const query = `SELECT id, username, firstname, lastname, group_name, role FROM users WHERE id = ?`;
+  const query = `SELECT id, username, firstname, lastname,  role FROM users WHERE id = ?`;
   db.get(query, [req.user.sub], (err, row) => {
     if (err) {
       return res.status(500).json({ error: "SQLITE3 ga ulanishda xatolik" });
@@ -91,7 +91,7 @@ const changePassword = (req, res) => {
 };
 
 const updateProfile = (req, res) => {
-  const { firstname, lastname, group_name, role } = req.body;
+  const { firstname, lastname, role } = req.body;
   const selectQuery = `SELECT * FROM users WHERE id = ?`;
   db.get(selectQuery, [req.user.sub], (err, user) => {
     if (err)
@@ -101,19 +101,12 @@ const updateProfile = (req, res) => {
 
     const updatedFirstname = firstname || user.firstname;
     const updatedLastname = lastname || user.lastname;
-    const updatedGroup = group_name || user.group_name;
     const updatedRole = user.role;
 
-    const updateQuery = `UPDATE users SET firstname = ?, lastname = ?, group_name = ?, role = ? WHERE id = ?`;
+    const updateQuery = `UPDATE users SET firstname = ?, lastname = ?,  role = ? WHERE id = ?`;
     db.run(
       updateQuery,
-      [
-        updatedFirstname,
-        updatedLastname,
-        updatedGroup,
-        updatedRole,
-        req.user.sub,
-      ],
+      [updatedFirstname, updatedLastname, updatedRole, req.user.sub],
       function (err) {
         if (err) return res.status(500).json({ error: "Yangilashda xatolik" });
         res.status(200).json({ message: "Profil yangilandi" });

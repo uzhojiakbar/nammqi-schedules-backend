@@ -96,10 +96,7 @@
                     "type": "string",
                     "example": "Murodillayev"
                   },
-                  "group": {
-                    "type": "string",
-                    "example": "36-att-23"
-                  },
+
                   "role": {
                     "type": "string",
                     "enum": ["admin", "user", "teacher"],
@@ -111,7 +108,6 @@
                   "password",
                   "firstname",
                   "lastname",
-                  "group",
                   "role"
                 ]
               }
@@ -430,7 +426,6 @@
                 "properties": {
                   "firstname": { "type": "string", "example": "Hojiakbar" },
                   "lastname": { "type": "string", "example": "Murodillayev" },
-                  "group_name": { "type": "string", "example": "36-ATT-23" },
                   "role": {
                     "type": "string",
                     "enum": ["user", "admin", "teacher"],
@@ -583,10 +578,7 @@
             "type": "string",
             "description": "Familiya"
           },
-          "group_name": {
-            "type": "string",
-            "description": "Foydalanuvchining guruh raqami"
-          },
+
           "role": {
             "type": "string",
             "enum": ["user", "admin", "teacher"],
@@ -598,7 +590,6 @@
           "username": "opisis",
           "firstname": "Hojiakbar",
           "lastname": "Murodillayev",
-          "group_name": "36-att-23",
           "role": "user"
         }
       }

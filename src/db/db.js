@@ -37,7 +37,6 @@ function createUsersTable() {
       password TEXT NOT NULL,
       firstname TEXT,
       lastname TEXT,
-      group_name TEXT,
       role TEXT CHECK(role IN ('admin', 'user', 'teacher')) NOT NULL DEFAULT 'user'
     );
   `;
@@ -101,7 +100,6 @@ function createUser(user, callback) {
     password,
     firstname = "",
     lastname = "",
-    group = "",
     role = "user",
   } = user;
 
@@ -122,7 +120,7 @@ function createUser(user, callback) {
 
     db.run(
       insertUser,
-      [id, username, password, firstname, lastname, group, role],
+      [id, username, password, firstname, lastname, role],
       function (err) {
         if (err) return callback(err);
         callback(null, { id });
