@@ -1,0 +1,614 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Nammqi schedules API",
+    "version": "2.1.1",
+    "description": "Nammqi schedules API"
+  },
+  "servers": [
+    {
+      "url": "http://37.27.215.130:5050",
+      "description": "Mexroj server"
+    },
+    {
+      "url": "http://localhost:5545",
+      "description": "Local server"
+    }
+  ],
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Foydaluvchini tizimga kirishi",
+        "description": "Foydaluvchini tizimga kirishi uchun username va password orqali autentifikatsiya qilish",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "string"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sub": "e8174fd2-7407-4ed3-a09c-25706529ef3a",
+                    "access_token": {
+                      "type": "string"
+                    },
+                    "refresh_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "description": "Register a user with role (admin, user, teacher)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "string"
+                  },
+                  "firstname": {
+                    "type": "string",
+                    "example": "Hojiakbar"
+                  },
+                  "lastname": {
+                    "type": "string",
+                    "example": "Murodillayev"
+                  },
+                  "group": {
+                    "type": "string",
+                    "example": "36-att-23"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["admin", "user", "teacher"],
+                    "example": "user"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password",
+                  "firstname",
+                  "lastname",
+                  "group",
+                  "role"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Foydaluvchi royxatdan o’tdi"
+          },
+          "400": {
+            "description": "Malumotlar noto'g'ri yoki foydaluvchi xatosi"
+          },
+          "409": {
+            "description": "Foydaluvchi oldindan bor"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      }
+    },
+    "/api/auth/refresh-token": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Yangi access token olish",
+        "description": "Refresh token orqali yangi access token olinadi. Token JWT formatida tekshiriladi va bazada mavjud bo‘lsa, yangi access token qaytariladi. Aks holda, foydalanuvchi tizimga qayta kirishi kerak bo‘ladi.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refresh_token": {
+                    "type": "string"
+                  }
+                },
+                "required": ["refresh_token"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Yangi access token muvaffaqiyatli qaytarildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Refresh token yuborilmagan"
+          },
+          "403": {
+            "description": "Refresh token noto‘g‘ri, muddati tugagan yoki tizimda mavjud emas"
+          },
+          "500": {
+            "description": "Bazaviy yoki serverdagi xatolik"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Foydalanuvchini tizimdan chiqarish (logout)",
+        "description": "Foydalanuvchining access tokenini bazadan o‘chiradi. Token yuborilishi shart.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Foydalanuvchi tizimdan chiqdi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Foydalanuvchi tizimdan chiqdi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token yuborilmagan"
+          },
+          "500": {
+            "description": "Tokenni bazadan o‘chirishda xatolik"
+          }
+        }
+      }
+    },
+    "/api/user/me": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Foydalanuvchi o‘z profil ma’lumotlarini olish",
+        "description": "Tizimga kirgan foydalanuvchi o‘zining to‘liq profil ma’lumotlarini olish uchun ishlatiladi. Foydaluvchi tokenini yuboradi va uning ma’lumotlari qaytariladi.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Foydalanuvchi ma’lumotlari",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/userDTO"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token mavjud emas yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Token muddati tugagan yoki noto‘g‘ri || Kirish taqiqlangan"
+          },
+          "404": {
+            "description": "Foydaluvchi topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Foydalivchi delete account qilish",
+        "description": "Foydaluvchi JWT tokeni orqali o`zini accountini delete qillishi uchun",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profil muvaffaqiyatli o‘chirildi"
+          },
+          "401": {
+            "description": "Token mavjud emas yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Token muddati tugagan yoki noto‘g‘ri || Kirish taqiqlangan"
+          },
+          "404": {
+            "description": "Foydaluvchi topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik || O‘chirishda xatolik"
+          }
+        }
+      }
+    },
+    "/api/user/compare-password": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Parolni tekshirish",
+        "description": "Foydalanuvchi o‘z parolini bazadagi bilan solishtiradi. Masalan: sozlamalarda parolni o‘zgartirishdan oldin, parolni tasdiqlashda foydalaniladi.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "description": "Foydalanuvchi hozirgi paroli",
+                    "example": "string"
+                  }
+                },
+                "required": ["password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parol solishtirildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "response": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Parol mos keladimi yoki yo‘q"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parol yuborilmagan"
+          },
+          "401": {
+            "description": "Token mavjud emas yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Token muddati tugagan yoki noto‘g‘ri || Kirish taqiqlangan"
+          },
+          "404": {
+            "description": "Foydaluvchi topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      }
+    },
+    "/api/user/password/change": {
+      "patch": {
+        "tags": ["User"],
+        "summary": "Parolni yangilash",
+        "description": "Foydalanuvchi hozirgi parolini kiritgan holda yangi parolga almashtiradi. Eski parol to‘g‘ri bo‘lishi shart.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "oldPassword": {
+                    "type": "string",
+                    "description": "Hozirgi (eski) parol",
+                    "example": "oldParol123"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "description": "Yangi parol (kamida 6 ta belgi)",
+                    "example": "YangiParol456"
+                  }
+                },
+                "required": ["oldPassword", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Parol muvaffaqiyatli yangilandi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Parol muvaffaqiyatli yangilandi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parollar to‘liq emas yoki noto‘g‘ri formatda"
+          },
+          "401": {
+            "description": "Eski parol noto‘g‘ri"
+          },
+          "404": {
+            "description": "Foydalanuvchi topilmadi"
+          },
+          "500": {
+            "description": "Server yoki bazaviy xatolik"
+          }
+        }
+      }
+    },
+    "/api/user/profile": {
+      "patch": {
+        "tags": ["User"],
+        "summary": "Foydalanuvchi profilini yangilash",
+        "description": "Faqat yuborilgan maydonlar yangilanadi, qolganlari eski holatda qoladi.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstname": { "type": "string", "example": "Hojiakbar" },
+                  "lastname": { "type": "string", "example": "Murodillayev" },
+                  "group_name": { "type": "string", "example": "36-ATT-23" },
+                  "role": {
+                    "type": "string",
+                    "enum": ["user", "admin", "teacher"],
+                    "example": "user"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profil yangilandi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Profil yangilandi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Yangilashda server xatosi"
+          }
+        }
+      }
+    },
+    "/api/admin/users": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Barcha foydalanuvchilar ro‘yxatini olish",
+        "description": "Faqat admin pagoni bilan barcha foydalanuvchilarni ro‘yxatini olish. JWT token talab qilinadi.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "firstname",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Foydalanuvchi ismi bo‘yicha filter",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "lastname",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Foydalanuvchi familiyasi bo‘yicha filter",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "username",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Foydalanuvchi username bo‘yicha filter",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Foydalanuvchilar ro‘yxati",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/userDTO"
+                      }
+                    },
+                    "usersCount": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "adminsCount": {
+                      "type": "integer",
+                      "example": 0
+                    },
+                    "teachersCount": {
+                      "type": "integer",
+                      "example": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Faqat adminlar kirishi mumkin"
+          },
+          "500": {
+            "description": "Server xatoligi"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Admin",
+      "description": "Adminlar boshqaruvi"
+    },
+    {
+      "name": "User",
+      "description": "Foydalanuvchilarlar boshqaruvi (foydaluvchilarning o`zini boshqarishi uchun)"
+    },
+    {
+      "name": "Auth",
+      "description": "Avtorizatsiya uchun pointlar"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "userDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Foydalanuvchining yagona identifikatori"
+          },
+          "username": {
+            "type": "string",
+            "description": "Foydalanuvchining login nomi"
+          },
+          "firstname": {
+            "type": "string",
+            "description": "Ism"
+          },
+          "lastname": {
+            "type": "string",
+            "description": "Familiya"
+          },
+          "group_name": {
+            "type": "string",
+            "description": "Foydalanuvchining guruh raqami"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin", "teacher"],
+            "description": "Foydalanuvchi roli"
+          }
+        },
+        "example": {
+          "id": "7b9e48b6-9624-4f2d-a947-455c2ff13d28",
+          "username": "opisis",
+          "firstname": "Hojiakbar",
+          "lastname": "Murodillayev",
+          "group_name": "36-att-23",
+          "role": "user"
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
