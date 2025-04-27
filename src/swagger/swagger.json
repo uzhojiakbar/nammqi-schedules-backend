@@ -7,8 +7,8 @@
   },
   "servers": [
     {
-      "url": "http://37.27.215.130:5050",
-      "description": "Mexroj server (disabled)"
+      "url": "http://37.27.215.130:4545",
+      "description": "Mexroj server "
     },
     {
       "url": "http://localhost:5545",
