@@ -26,6 +26,7 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     createUsersTable();
     createTokenTable();
     createAccessTokenTable();
+    createBuildingsTable();
   }
 });
 
@@ -129,7 +130,103 @@ function createUser(user, callback) {
   });
 }
 
+// BUILDINGS
+function createBuildingsTable() {
+  const createTableSQL = `
+    CREATE TABLE IF NOT EXISTS buildings (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL CHECK(name != ''),
+      address TEXT NOT NULL CHECK(address != ''),
+      creatorID TEXT NOT NULL CHECK(creatorID != '')
+    );
+  `;
+
+  db.run(createTableSQL, (err) => {
+    if (err) {
+      console.error("❌ buildings jadvalini yaratishda xatolik:", err.message);
+    } else {
+      console.log("✅ buildings jadvali tayyor");
+    }
+  });
+}
+
+function createBuilding(building, user, callback) {
+  const id = uuidv4();
+  const { name, address } = building;
+
+  if (!name) {
+    return callback(new CustomError(400, "Binoning nomi majburiy"));
+  }
+  if (!address) {
+    return callback(new CustomError(400, "Binoning manzili majburiy"));
+  }
+
+  const insertBuildingSQL = `
+    INSERT INTO buildings (id, name, address, creatorID)
+    VALUES (?, ?, ?, ?);
+  `;
+
+  db.run(
+    insertBuildingSQL,
+    [id, name, address, user?.id || null],
+    function (err) {
+      if (err) {
+        return callback(err);
+      }
+      callback(null, { id });
+    }
+  );
+}
+
+function getAllBuildings(filters, callback) {
+  let selectBuildingsSQL = `
+    SELECT * FROM buildings
+  `;
+  const conditions = [];
+  const params = [];
+
+  if (filters.name) {
+    conditions.push("name LIKE ?");
+    params.push(`%${filters.name}%`);
+  }
+
+  if (filters.address) {
+    conditions.push("address LIKE ?");
+    params.push(`%${filters.address}%`);
+  }
+
+  if (conditions.length > 0) {
+    selectBuildingsSQL += ` WHERE ${conditions.join(" AND ")}`;
+  }
+
+  db.all(selectBuildingsSQL, params, (err, rows) => {
+    if (err) {
+      return callback(err);
+    }
+    callback(null, rows);
+  });
+}
+
+function deleteBuildingById(buildingId, callback) {
+  const deleteBuildingSQL = `
+    DELETE FROM buildings WHERE id = ?;
+  `;
+
+  db.run(deleteBuildingSQL, [buildingId], function (err) {
+    if (err) {
+      return callback(err);
+    }
+    if (this.changes === 0) {
+      return callback(new CustomError(404, "Bunday ID bilan bino topilmadi"));
+    }
+    callback(null);
+  });
+}
+
 module.exports = {
   db,
   createUser,
+  createBuilding,
+  getAllBuildings,
+  deleteBuildingById,
 };

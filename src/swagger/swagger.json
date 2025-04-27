@@ -8,7 +8,7 @@
   "servers": [
     {
       "url": "http://37.27.215.130:5050",
-      "description": "Mexroj server"
+      "description": "Mexroj server (disabled)"
     },
     {
       "url": "http://localhost:5545",
@@ -540,12 +540,248 @@
           }
         }
       }
+    },
+    "/api/db/buildings/add": {
+      "post": {
+        "tags": ["Database Controller"],
+        "summary": "Yangi bino qo'shish",
+        "description": "Yangi bino qo'shish uchun bino nomi va manzilini yuboring.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Binoning nomi",
+                    "example": "Asosiy bino"
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "Binoning manzili",
+                    "example": "Toshkent, Amir Temur ko'chasi, 10"
+                  }
+                },
+                "required": ["name", "address"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bino muvaffaqiyatli qo'shildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Bino muvaffaqiyatli qo'shildi"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "description": "Qo'shilgan binoning yagona identifikatori",
+                          "example": "123e4567-e89b-12d3-a456-426614174000"
+                        },
+                        "creatorID": {
+                          "type": "string",
+                          "format": "uuid",
+                          "description": "Binoni yaratgan adminning identifikatori",
+                          "example": "123e4567-e89b-12d3-a456-426614174000"
+                        },
+                        "name": {
+                          "type": "string",
+                          "description": "Qo'shilgan binoning nomi",
+                          "example": "Asosiy bino"
+                        },
+                        "address": {
+                          "type": "string",
+                          "description": "Qo'shilgan binoning manzili",
+                          "example": "Toshkent, Amir Temur ko'chasi, 10"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bino nomi yoki manzili noto'g'ri yoki yuborilmagan"
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Faqat adminlar kirishi mumkin"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      }
+    },
+    "/api/db/buildings/all": {
+      "get": {
+        "tags": ["Database Controller"],
+        "summary": "Barcha binolarni olish",
+        "description": "Barcha binolar ro'yxatini olish. Nom yoki manzil bo'yicha filterlash mumkin.",
+
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Binoning nomi bo'yicha filter",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "address",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Binoning manzili bo'yicha filter",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Binolar ro'yxati",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "buildings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Qo'shilgan binoning yagona identifikatori",
+                            "example": "123e4567-e89b-12d3-a456-426614174000"
+                          },
+                          "creatorID": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "Binoni yaratgan adminning identifikatori",
+                            "example": "123e4567-e89b-12d3-a456-426614174000"
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Qo'shilgan binoning nomi",
+                            "example": "Asosiy bino"
+                          },
+                          "address": {
+                            "type": "string",
+                            "description": "Qo'shilgan binoning manzili",
+                            "example": "Toshkent, Amir Temur ko'chasi, 10"
+                          }
+                        }
+                      }
+                    },
+                    "totalCount": {
+                      "type": "integer",
+                      "example": 10,
+                      "description": "Jami binolar soni"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      }
+    },
+    "/api/db/buildings/{id}": {
+      "delete": {
+        "tags": ["Database Controller"],
+        "summary": "Binoni o'chirish",
+        "description": "Binoni ID orqali o'chirish.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "O'chiriladigan binoning ID si"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bino muvaffaqiyatli o'chirildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Bino muvaffaqiyatli o'chirildi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bino ID yuborilmagan yoki noto'g'ri"
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Faqat adminlar kirishi mumkin"
+          },
+          "404": {
+            "description": "Bunday ID bilan bino topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      }
     }
   },
   "tags": [
     {
       "name": "Admin",
       "description": "Adminlar boshqaruvi"
+    },
+    {
+      "name": "Database Controller",
+      "description": "Database bilan bog'liq pointlar"
     },
     {
       "name": "User",
@@ -591,6 +827,34 @@
           "firstname": "Hojiakbar",
           "lastname": "Murodillayev",
           "role": "user"
+        }
+      },
+      "buildingsDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Binoning yagona identifikatori"
+          },
+          "creatorID": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Binoni yaratgan adminning identifikatori"
+          },
+          "name": {
+            "type": "string",
+            "description": "Binoning nomi"
+          },
+          "address": {
+            "type": "string",
+            "description": "Binoning manzili"
+          }
+        },
+        "example": {
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "name": "Asosiy bino",
+          "address": "Toshkent, Amir Temur ko'chasi, 10"
         }
       }
     },

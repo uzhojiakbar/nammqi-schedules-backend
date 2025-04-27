@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .env
 *.env
+src/db/database.sqlite
+db/database.sqlite
+*.sqlite
