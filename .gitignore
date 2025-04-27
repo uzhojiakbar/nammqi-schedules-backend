@@ -27,3 +27,4 @@ dist-ssr
 src/db/database.sqlite
 db/database.sqlite
 *.sqlite
+src/db/database.sqlite
