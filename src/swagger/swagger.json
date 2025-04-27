@@ -8,7 +8,7 @@
   "servers": [
     {
       "url": "http://37.27.215.130:5545",
-      "description": "Mexroj server "
+      "description": "Mexroj server MAIN "
     },
     {
       "url": "http://localhost:5545",
