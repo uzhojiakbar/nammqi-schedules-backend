@@ -240,6 +240,43 @@ function getAllBuildings(filters, callback) {
     callback(null, result);
   });
 }
+function getBuildingById(buildingId, callback) {
+  const selectBuildingSQL = `
+    SELECT b.*, 
+           u.firstname AS creatorFirstname, 
+           u.lastname AS creatorLastname, 
+           u.role AS creatorRole, 
+           u.username AS creatorUsername, 
+           u.id AS creatorId
+    FROM buildings b
+    LEFT JOIN users u ON b.creatorID = u.id
+    WHERE b.id = ?
+  `;
+
+  db.get(selectBuildingSQL, [buildingId], (err, row) => {
+    if (err) {
+      return callback(err);
+    }
+    if (!row) {
+      return callback(new CustomError(404, "Bunday ID bilan bino topilmadi"));
+    }
+
+    const result = {
+      id: row.id,
+      name: row.name,
+      address: row.address,
+      creatorDTO: {
+        id: row.creatorId || null,
+        firstname: row.creatorFirstname || null,
+        lastname: row.creatorLastname || null,
+        role: row.creatorRole || null,
+        username: row.creatorUsername || null,
+      },
+    };
+
+    callback(null, result);
+  });
+}
 
 function deleteBuildingById(buildingId, callback) {
   const deleteBuildingSQL = `
@@ -263,4 +300,5 @@ module.exports = {
   createBuilding,
   getAllBuildings,
   deleteBuildingById,
+  getBuildingById,
 };

@@ -7,12 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://37.27.215.130:5545",
-      "description": "Mexroj server MAIN "
-    },
-    {
       "url": "http://localhost:5545",
       "description": "Local server"
+    },
+    {
+      "url": "http://37.27.215.130:5545",
+      "description": "Mexroj server MAIN "
     }
   ],
   "paths": {
@@ -699,6 +699,16 @@
                             "description": "Qo'shilgan binoning yagona identifikatori",
                             "example": "123e4567-e89b-12d3-a456-426614174000"
                           },
+                          "name": {
+                            "type": "string",
+                            "description": "Qo'shilgan binoning nomi",
+                            "example": "Asosiy bino"
+                          },
+                          "address": {
+                            "type": "string",
+                            "description": "Qo'shilgan binoning manzili",
+                            "example": "Toshkent, Amir Temur ko'chasi, 10"
+                          },
                           "creatorDTO": {
                             "type": "object",
                             "description": "Binoni yaratgan adminning ma'lumotlari",
@@ -726,16 +736,6 @@
                                 "description": "Adminning login nomi"
                               }
                             }
-                          },
-                          "name": {
-                            "type": "string",
-                            "description": "Qo'shilgan binoning nomi",
-                            "example": "Asosiy bino"
-                          },
-                          "address": {
-                            "type": "string",
-                            "description": "Qo'shilgan binoning manzili",
-                            "example": "Toshkent, Amir Temur ko'chasi, 10"
                           }
                         }
                       }
@@ -760,6 +760,93 @@
       }
     },
     "/api/db/buildings/{id}": {
+      "get": {
+        "tags": ["Database Controller"],
+        "summary": "Bitta binoni olish",
+        "description": "Binoni ID orqali olish. Faqat bitta bino ma'lumotlari qaytariladi.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "Olinadigan binoning ID si"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bino ma'lumotlari",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Binoning yagona identifikatori",
+                      "example": "123e4567-e89b-12d3-a456-426614174000"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Binoning nomi",
+                      "example": "Asosiy bino"
+                    },
+                    "address": {
+                      "type": "string",
+                      "description": "Binoning manzili",
+                      "example": "Toshkent, Amir Temur ko'chasi, 10"
+                    },
+                    "creatorDTO": {
+                      "type": "object",
+                      "description": "Binoni yaratgan adminning ma'lumotlari",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "description": "Adminning yagona identifikatori"
+                        },
+                        "firstname": {
+                          "type": "string",
+                          "description": "Adminning ismi"
+                        },
+                        "lastname": {
+                          "type": "string",
+                          "description": "Adminning familiyasi"
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": ["user", "admin", "teacher"],
+                          "description": "Adminning roli"
+                        },
+                        "username": {
+                          "type": "string",
+                          "description": "Adminning login nomi"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bino ID yuborilmagan yoki noto'g'ri"
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "404": {
+            "description": "Bunday ID bilan bino topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      },
       "delete": {
         "tags": ["Database Controller"],
         "summary": "Binoni o'chirish",
