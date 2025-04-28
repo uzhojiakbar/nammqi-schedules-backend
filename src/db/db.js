@@ -178,20 +178,40 @@ function createBuilding(building, user, callback) {
   );
 }
 
+function getUserData(userId, callback) {
+  const query = `SELECT id, username, firstname, lastname, role FROM users WHERE id = ?`;
+  db.get(query, [userId], (err, row) => {
+    if (err) {
+      return callback(new CustomError(500, "SQLITE3 ga ulanishda xatolik"));
+    }
+    if (!row) {
+      return callback(new CustomError(404, "Foydalanuvchi topilmadi"));
+    }
+    callback(null, row);
+  });
+}
+
 function getAllBuildings(filters, callback) {
   let selectBuildingsSQL = `
-    SELECT * FROM buildings
+    SELECT b.*, 
+           u.firstname AS creatorFirstname, 
+           u.lastname AS creatorLastname, 
+           u.role AS creatorRole, 
+           u.username AS creatorUsername, 
+           u.id AS creatorId
+    FROM buildings b
+    LEFT JOIN users u ON b.creatorID = u.id
   `;
   const conditions = [];
   const params = [];
 
   if (filters.name) {
-    conditions.push("name LIKE ?");
+    conditions.push("b.name LIKE ?");
     params.push(`%${filters.name}%`);
   }
 
   if (filters.address) {
-    conditions.push("address LIKE ?");
+    conditions.push("b.address LIKE ?");
     params.push(`%${filters.address}%`);
   }
 
@@ -203,7 +223,21 @@ function getAllBuildings(filters, callback) {
     if (err) {
       return callback(err);
     }
-    callback(null, rows);
+
+    const result = rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      address: row.address,
+      creatorDTO: {
+        id: row.creatorId || null,
+        firstname: row.creatorFirstname || null,
+        lastname: row.creatorLastname || null,
+        role: row.creatorRole || null,
+        username: row.creatorUsername || null,
+      },
+    }));
+
+    callback(null, result);
   });
 }
 

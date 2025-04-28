@@ -595,11 +595,33 @@
                           "description": "Qo'shilgan binoning yagona identifikatori",
                           "example": "123e4567-e89b-12d3-a456-426614174000"
                         },
-                        "creatorID": {
-                          "type": "string",
-                          "format": "uuid",
-                          "description": "Binoni yaratgan adminning identifikatori",
-                          "example": "123e4567-e89b-12d3-a456-426614174000"
+                        "creatorDTO": {
+                          "type": "object",
+                          "description": "Binoni yaratgan adminning ma'lumotlari",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "description": "Adminning yagona identifikatori"
+                            },
+                            "firstname": {
+                              "type": "string",
+                              "description": "Adminning ismi"
+                            },
+                            "lastname": {
+                              "type": "string",
+                              "description": "Adminning familiyasi"
+                            },
+                            "role": {
+                              "type": "string",
+                              "enum": ["user", "admin", "teacher"],
+                              "description": "Adminning roli"
+                            },
+                            "username": {
+                              "type": "string",
+                              "description": "Adminning login nomi"
+                            }
+                          }
                         },
                         "name": {
                           "type": "string",
@@ -638,7 +660,6 @@
         "tags": ["Database Controller"],
         "summary": "Barcha binolarni olish",
         "description": "Barcha binolar ro'yxatini olish. Nom yoki manzil bo'yicha filterlash mumkin.",
-
         "parameters": [
           {
             "in": "query",
@@ -678,11 +699,33 @@
                             "description": "Qo'shilgan binoning yagona identifikatori",
                             "example": "123e4567-e89b-12d3-a456-426614174000"
                           },
-                          "creatorID": {
-                            "type": "string",
-                            "format": "uuid",
-                            "description": "Binoni yaratgan adminning identifikatori",
-                            "example": "123e4567-e89b-12d3-a456-426614174000"
+                          "creatorDTO": {
+                            "type": "object",
+                            "description": "Binoni yaratgan adminning ma'lumotlari",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "description": "Adminning yagona identifikatori"
+                              },
+                              "firstname": {
+                                "type": "string",
+                                "description": "Adminning ismi"
+                              },
+                              "lastname": {
+                                "type": "string",
+                                "description": "Adminning familiyasi"
+                              },
+                              "role": {
+                                "type": "string",
+                                "enum": ["user", "admin", "teacher"],
+                                "description": "Adminning roli"
+                              },
+                              "username": {
+                                "type": "string",
+                                "description": "Adminning login nomi"
+                              }
+                            }
                           },
                           "name": {
                             "type": "string",
@@ -837,10 +880,33 @@
             "format": "uuid",
             "description": "Binoning yagona identifikatori"
           },
-          "creatorID": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Binoni yaratgan adminning identifikatori"
+          "creatorDTO": {
+            "type": "object",
+            "description": "Binoni yaratgan adminning ma'lumotlari",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Adminning yagona identifikatori"
+              },
+              "firstname": {
+                "type": "string",
+                "description": "Adminning ismi"
+              },
+              "lastname": {
+                "type": "string",
+                "description": "Adminning familiyasi"
+              },
+              "role": {
+                "type": "string",
+                "enum": ["user", "admin", "teacher"],
+                "description": "Adminning roli"
+              },
+              "username": {
+                "type": "string",
+                "description": "Adminning login nomi"
+              }
+            }
           },
           "name": {
             "type": "string",

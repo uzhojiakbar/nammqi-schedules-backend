@@ -20,12 +20,20 @@ function createBuildingController(req, res) {
         return res.status(500).json({ error: "Server xatosi" });
       }
 
+      const creatorDTO = {
+        id: req?.userInfo?.id || null,
+        firstname: req?.userInfo?.firstname || null,
+        lastname: req?.userInfo?.lastname || null,
+        role: req?.userInfo?.role || null,
+        username: req?.userInfo?.username || null,
+      };
+
       res.status(201).json({
         message: "Bino muvaffaqiyatli qo'shildi",
         data: {
           id: result.id,
-          creatorID: req?.userInfo?.id || null,
           ...building,
+          creatorDTO,
         },
       });
     });
