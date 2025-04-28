@@ -4,6 +4,7 @@ const {
   getAllBuildingsController,
   deleteBuildingController,
   getOneBuildingById,
+  updateBuildingController,
 } = require("../../../controllers/db/buildings");
 const {
   authenticateToken,
@@ -21,6 +22,12 @@ router.post(
 
 router.get("/all", getAllBuildingsController);
 router.get("/:id", getOneBuildingById);
+router.patch(
+  "/:id",
+  authenticateToken,
+  authorizeAdmin,
+  updateBuildingController
+);
 
 router.delete(
   "/:id",

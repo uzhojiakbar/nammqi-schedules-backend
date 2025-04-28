@@ -294,6 +294,47 @@ function deleteBuildingById(buildingId, callback) {
   });
 }
 
+function updateBuildingById(buildingId, updates, callback) {
+  const { name, address } = updates;
+
+  if (!name && !address) {
+    return callback(
+      new CustomError(400, "Hech bo'lmaganda name yoki address kerak")
+    );
+  }
+
+  const fields = [];
+  const params = [];
+
+  if (name) {
+    fields.push("name = ?");
+    params.push(name);
+  }
+
+  if (address) {
+    fields.push("address = ?");
+    params.push(address);
+  }
+
+  params.push(buildingId);
+
+  const updateBuildingSQL = `
+    UPDATE buildings
+    SET ${fields.join(", ")}
+    WHERE id = ?;
+  `;
+
+  db.run(updateBuildingSQL, params, function (err) {
+    if (err) {
+      return callback(err);
+    }
+    if (this.changes === 0) {
+      return callback(new CustomError(404, "Bunday ID bilan bino topilmadi"));
+    }
+    callback(null);
+  });
+}
+
 module.exports = {
   db,
   createUser,
@@ -301,4 +342,5 @@ module.exports = {
   getAllBuildings,
   deleteBuildingById,
   getBuildingById,
+  updateBuildingById,
 };

@@ -7,12 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://37.27.215.130:5545",
-      "description": "Mexroj server MAIN "
-    },
-    {
       "url": "http://localhost:5545",
       "description": "Local server"
+    },
+    {
+      "url": "http://37.27.215.130:5545",
+      "description": "Mexroj server MAIN "
     }
   ],
   "paths": {
@@ -543,7 +543,7 @@
     },
     "/api/db/buildings/add": {
       "post": {
-        "tags": ["Database Controller"],
+        "tags": ["Binolar boshqaruvi"],
         "summary": "Yangi bino qo'shish",
         "description": "Yangi bino qo'shish uchun bino nomi va manzilini yuboring.",
         "security": [
@@ -657,7 +657,7 @@
     },
     "/api/db/buildings/all": {
       "get": {
-        "tags": ["Database Controller"],
+        "tags": ["Binolar boshqaruvi"],
         "summary": "Barcha binolarni olish",
         "description": "Barcha binolar ro'yxatini olish. Nom yoki manzil bo'yicha filterlash mumkin.",
         "parameters": [
@@ -761,7 +761,7 @@
     },
     "/api/db/buildings/{id}": {
       "get": {
-        "tags": ["Database Controller"],
+        "tags": ["Binolar boshqaruvi"],
         "summary": "Bitta binoni olish",
         "description": "Binoni ID orqali olish. Faqat bitta bino ma'lumotlari qaytariladi.",
         "parameters": [
@@ -848,7 +848,7 @@
         }
       },
       "delete": {
-        "tags": ["Database Controller"],
+        "tags": ["Binolar boshqaruvi"],
         "summary": "Binoni o'chirish",
         "description": "Binoni ID orqali o'chirish.",
         "security": [
@@ -901,6 +901,84 @@
             "description": "Serverda xatolik"
           }
         }
+      },
+      "patch": {
+        "tags": ["Binolar boshqaruvi"],
+        "summary": "Binoni yangilash",
+        "description": "Binoni ID orqali yangilash. Faqat bino nomi va manzili o'zgartiriladi.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "Yangilanadigan binoning ID si"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Binoning yangi nomi",
+                    "example": "Yangilangan bino"
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "Binoning yangi manzili",
+                    "example": "Toshkent, Yangi manzil"
+                  }
+                },
+                "required": ["name", "address"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bino muvaffaqiyatli yangilandi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Bino muvaffaqiyatli yangilandi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bino ID yoki yangilash uchun ma'lumotlar noto'g'ri"
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Faqat adminlar kirishi mumkin"
+          },
+          "404": {
+            "description": "Bunday ID bilan bino topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
       }
     }
   },
@@ -910,8 +988,8 @@
       "description": "Adminlar boshqaruvi"
     },
     {
-      "name": "Database Controller",
-      "description": "Database bilan bog'liq pointlar"
+      "name": "Binolar boshqaruvi",
+      "description": "Binolar bilan bog'liq API pointlar"
     },
     {
       "name": "User",

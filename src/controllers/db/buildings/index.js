@@ -5,6 +5,7 @@ const {
   getAllBuildings,
   deleteBuildingById,
   getBuildingById,
+  updateBuildingById,
 } = require("../../../db/db");
 
 function createBuildingController(req, res) {
@@ -113,9 +114,39 @@ function deleteBuildingController(req, res) {
     res.status(status).json({ error: error.message });
   }
 }
+
+function updateBuildingController(req, res) {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Bino ID majburiy" });
+    }
+
+    updateBuildingById(id, updatedData, (err, result) => {
+      if (err) {
+        if (err instanceof CustomError) {
+          return res.status(err.code).json({ error: err.message });
+        }
+        return res.status(500).json({ error: "Server xatosi" });
+      }
+
+      res.status(200).json({
+        message: "Bino muvaffaqiyatli yangilandi",
+        data: result,
+      });
+    });
+  } catch (error) {
+    const status = error.code || 400;
+    res.status(status).json({ error: error.message });
+  }
+}
+
 module.exports = {
   createBuildingController,
   getAllBuildingsController,
   deleteBuildingController,
   getOneBuildingById,
+  updateBuildingController,
 };
