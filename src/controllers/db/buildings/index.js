@@ -52,14 +52,24 @@ function getAllBuildingsController(req, res) {
       address: req.query.address || null,
     };
 
-    getAllBuildings(filters, (err, buildings) => {
+    const page = parseInt(req.query.page) || 1;
+    const size = parseInt(req.query.size) || 10;
+
+    getAllBuildings(filters, page, size, (err, buildings, totalCount) => {
       if (err) {
         return res.status(500).json({ error: "Server xatosi" });
       }
 
+      const totalPages = Math.ceil(totalCount / size);
+
       res.status(200).json({
         buildings,
-        totalCount: buildings.length,
+        totalCount,
+        totalPages,
+        currentPage: page,
+        pageSize: size,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
       });
     });
   } catch (error) {
@@ -67,6 +77,7 @@ function getAllBuildingsController(req, res) {
     res.status(status).json({ error: error.message });
   }
 }
+
 
 function getOneBuildingById(req, res) {
   try {

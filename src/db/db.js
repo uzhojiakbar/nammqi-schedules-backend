@@ -191,8 +191,8 @@ function getUserData(userId, callback) {
   });
 }
 
-function getAllBuildings(filters, callback) {
-  let selectBuildingsSQL = `
+function getAllBuildings(filters, page, size, callback) {
+  let baseSQL = `
     SELECT b.*, 
            u.firstname AS creatorFirstname, 
            u.lastname AS creatorLastname, 
@@ -202,6 +202,13 @@ function getAllBuildings(filters, callback) {
     FROM buildings b
     LEFT JOIN users u ON b.creatorID = u.id
   `;
+
+  let countSQL = `
+    SELECT COUNT(*) AS totalCount
+    FROM buildings b
+    LEFT JOIN users u ON b.creatorID = u.id
+  `;
+
   const conditions = [];
   const params = [];
 
@@ -209,37 +216,47 @@ function getAllBuildings(filters, callback) {
     conditions.push("b.name LIKE ?");
     params.push(`%${filters.name}%`);
   }
-
   if (filters.address) {
     conditions.push("b.address LIKE ?");
     params.push(`%${filters.address}%`);
   }
 
   if (conditions.length > 0) {
-    selectBuildingsSQL += ` WHERE ${conditions.join(" AND ")}`;
+    const whereClause = ` WHERE ${conditions.join(" AND ")}`;
+    baseSQL += whereClause;
+    countSQL += whereClause;
   }
 
-  db.all(selectBuildingsSQL, params, (err, rows) => {
-    if (err) {
-      return callback(err);
-    }
+  const offset = (page - 1) * size;
+  baseSQL += ` LIMIT ? OFFSET ?`;
+  params.push(size, offset);
 
-    const result = rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      address: row.address,
-      creatorDTO: {
-        id: row.creatorId || null,
-        firstname: row.creatorFirstname || null,
-        lastname: row.creatorLastname || null,
-        role: row.creatorRole || null,
-        username: row.creatorUsername || null,
-      },
-    }));
+  db.all(countSQL, params.slice(0, -2), (err, countRows) => {
+    if (err) return callback(err);
 
-    callback(null, result);
+    const totalCount = countRows[0].totalCount;
+
+    db.all(baseSQL, params, (err, rows) => {
+      if (err) return callback(err);
+
+      const result = rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        address: row.address,
+        creatorDTO: {
+          id: row.creatorId || null,
+          firstname: row.creatorFirstname || null,
+          lastname: row.creatorLastname || null,
+          role: row.creatorRole || null,
+          username: row.creatorUsername || null,
+        },
+      }));
+
+      callback(null, result, totalCount);
+    });
   });
 }
+
 function getBuildingById(buildingId, callback) {
   const selectBuildingSQL = `
     SELECT b.*, 
