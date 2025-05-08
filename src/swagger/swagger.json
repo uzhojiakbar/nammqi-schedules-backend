@@ -7,12 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://37.27.215.130:5545",
-      "description": "Mexroj server MAIN "
-    },
-    {
       "url": "http://localhost:5545",
       "description": "Local server"
+    },
+    {
+      "url": "http://37.27.215.130:5545",
+      "description": "Mexroj server MAIN "
     }
   ],
   "paths": {
@@ -1028,6 +1028,116 @@
           }
         }
       }
+    },
+    "/api/db/auditoriums/add": {
+      "post": {
+        "tags": ["Auditoriyalar boshqaruvi"],
+        "summary": "Yangi auditoriya qo'shish",
+        "description": "Yangi auditoriya yaratish uchun kerakli maydonlarni yuboring.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Auditoriya nomi",
+                    "example": "A-101"
+                  },
+                  "buildingID": {
+                    "type": "string",
+                    "description": "Auditoriya tegishli bo‘lgan bino IDsi",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                  },
+                  "capacity": {
+                    "type": "integer",
+                    "description": "Auditoriya sig‘imi (necha kishilik)",
+                    "example": 120
+                  },
+                  "department": {
+                    "type": "string",
+                    "description": "Auditoriyaga tegishli kafedra nomi",
+                    "example": "Axborot texnologiyalari"
+                  },
+                  "hasProjector": {
+                    "type": "integer",
+                    "description": "Proektor mavjudligi (1 — bor, 0 — yo‘q)",
+                    "enum": [0, 1],
+                    "example": 1
+                  },
+                  "hasElectronicScreen": {
+                    "type": "integer",
+                    "description": "Elektron ekran mavjudligi (1 — bor, 0 — yo‘q)",
+                    "enum": [0, 1],
+                    "example": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Ixtiyoriy izoh",
+                    "example": "Bu auditoriyada zamonaviy jihozlar mavjud."
+                  }
+                },
+                "required": [
+                  "name",
+                  "buildingID",
+                  "capacity",
+                  "department",
+                  "hasProjector",
+                  "hasElectronicScreen"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Auditoriya muvaffaqiyatli qo‘shildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Auditoriya muvaffaqiyatli qo‘shildi"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "description": "Yangi yaratilgan auditoriyaning IDsi",
+                          "example": "9f3e4567-e89b-12d3-a456-426614174abc"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "So‘rovdagi ma’lumotlar to‘liq emas yoki noto‘g‘ri"
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Faqat adminlar auditoriya qo‘sha oladi"
+          },
+          "500": {
+            "description": "Serverda ichki xatolik"
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -1038,6 +1148,10 @@
     {
       "name": "Binolar boshqaruvi",
       "description": "Binolar bilan bog'liq API pointlar"
+    },
+    {
+      "name": "Auditoriyalar boshqaruvi",
+      "description": "Auditoriyalar bilan bog'liq API pointlar"
     },
     {
       "name": "User",

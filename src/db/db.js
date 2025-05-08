@@ -23,10 +23,12 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     console.error("❌ DB ulanishda xatolik:", err.message);
   } else {
     console.log("✅ SQLite DB ulanmoqda...");
+
     createUsersTable();
     createTokenTable();
     createAccessTokenTable();
     createBuildingsTable();
+    createAuditoriumsTable();
   }
 });
 
@@ -352,6 +354,133 @@ function updateBuildingById(buildingId, updates, callback) {
   });
 }
 
+
+// AUDITORIUMS CONTROLLER
+
+// AUDITORIYALAR jadvalini yaratish
+function createAuditoriumsTable() {
+  db.run("PRAGMA foreign_keys = ON");
+
+  const createTableSQL = `
+   CREATE TABLE IF NOT EXISTS auditoriums (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL CHECK(name != ''),
+    buildingID TEXT NOT NULL,
+    capacity INTEGER NOT NULL CHECK(capacity > 0),
+    department TEXT,
+    hasProjector INTEGER NOT NULL DEFAULT 0 CHECK(hasProjector IN (0,1)),
+    hasElectronicScreen INTEGER NOT NULL DEFAULT 0 CHECK(hasElectronicScreen IN (0,1)),
+    description TEXT,
+    creatorID TEXT DEFAULT NULL,
+    FOREIGN KEY(buildingID) REFERENCES buildings(id) ON DELETE CASCADE,
+    FOREIGN KEY(creatorID) REFERENCES users(id) ON DELETE SET NULL
+  );
+  `;
+
+  db.run(createTableSQL, (err) => {
+    if (err) {
+      console.error("❌ Auditoriyalar jadvalini yaratishda xatolik:", err.message);
+    } else {
+      console.log("✅ Auditoriyalar jadvali tayyor");
+    }
+  });
+}
+
+function createAuditorium(auditorium, user, callback) {
+  const id = uuidv4();
+
+  const {
+    name,
+    buildingID,
+    capacity,
+    department,
+    hasProjector,
+    hasElectronicScreen,
+    description = null,
+  } = auditorium;
+
+  function validateAuditorium(auditorium, callbackInner) {
+
+    db.get("SELECT id FROM buildings WHERE id = ?", [buildingID], (err, buildingRow) => {
+      if (err) return callbackInner(new CustomError(500, "Bazada xatolik yuz berdi"));
+      if (!buildingRow) {
+        return callbackInner(new CustomError(400, `Bunday IDdagi bino topilmadi: ${buildingID}`));
+      }
+    })
+
+    const requiredFields = [
+      { key: "name", label: "Xona nomi" },
+      { key: "buildingID", label: "Bino IDsi" },
+      { key: "capacity", label: "Sig'imi" },
+      { key: "department", label: "Kafedra" },
+      { key: "hasProjector", label: "Proektor mavjudligi" },
+      { key: "hasElectronicScreen", label: "Elektron ekran mavjudligi" },
+    ];
+
+    for (const field of requiredFields) {
+      const value = auditorium[field.key];
+
+      if (value === undefined || value === null || value === "") {
+        return callbackInner(new CustomError(400, `${field.label} majburiy`));
+      }
+
+      if (field.key === "capacity") {
+        const parsed = parseInt(value);
+        if (isNaN(parsed) || parsed <= 0) {
+          return callbackInner(
+            new CustomError(400, `Sig'im faqat musbat son bo'lishi kerak`)
+          );
+        }
+      }
+
+      if (
+        (field.key === "hasProjector" || field.key === "hasElectronicScreen") &&
+        ![0, 1].includes(Number(value))
+      ) {
+        return callbackInner(
+          new CustomError(400, `${field.label} faqat 0 yoki 1 bo'lishi kerak`)
+        );
+      }
+    }
+
+    callbackInner(null);
+  }
+
+  validateAuditorium(auditorium, (err) => {
+    if (err) return callback(err);
+
+    const insertSQL = `
+      INSERT INTO auditoriums (
+        id, name, buildingID, capacity, department,
+        hasProjector, hasElectronicScreen, description, creatorID
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+
+    db.run(
+      insertSQL,
+      [
+        id,
+        name,
+        buildingID,
+        parseInt(capacity),
+        department,
+        Number(hasProjector),
+        Number(hasElectronicScreen),
+        description,
+        user?.id || null,
+      ],
+      function (err) {
+        if (err) {
+          console.error("❌ Auditoriya qo'shishda xatolik:", err.message);
+          return callback(new CustomError(500, "Auditoriya saqlashda xatolik"));
+        }
+
+        callback(null, { id });
+      }
+    );
+  });
+}
+
 module.exports = {
   db,
   createUser,
@@ -360,4 +489,5 @@ module.exports = {
   deleteBuildingById,
   getBuildingById,
   updateBuildingById,
+  createAuditorium
 };
