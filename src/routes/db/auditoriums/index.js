@@ -1,6 +1,7 @@
 const express = require("express");
 const {
     createAuditoriumController,
+    getAuditoriumsByBuildingIdController,
 } = require("../../../controllers/db/auditoriums/index.js");
 const {
     authenticateToken,
@@ -14,6 +15,12 @@ router.post(
     authenticateToken,
     authorizeAdmin,
     createAuditoriumController
+);
+
+
+router.get(
+    "/buildingID/:id",
+    getAuditoriumsByBuildingIdController
 );
 
 

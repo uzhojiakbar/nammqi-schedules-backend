@@ -7,12 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5545",
-      "description": "Local server"
-    },
-    {
       "url": "http://37.27.215.130:5545",
       "description": "Mexroj server MAIN "
+    },
+    {
+      "url": "http://localhost:5545",
+      "description": "Local server"
     }
   ],
   "paths": {
@@ -282,7 +282,39 @@
       "get": {
         "tags": ["Front-Test"],
         "summary": "Judayam kop malumot olish",
-        "description": "Loader uchun test"
+        "description": "Loader uchun test",
+        "responses": {
+          "201": {
+            "description": "Auditoriya muvaffaqiyatli qo‘shildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "data": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "So‘rovdagi ma’lumotlar to‘liq emas yoki noto‘g‘ri"
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Faqat adminlar auditoriya qo‘sha oladi"
+          },
+          "500": {
+            "description": "Serverda ichki xatolik"
+          }
+        }
       }
     },
     "/api/user/compare-password": {
@@ -1145,6 +1177,82 @@
           }
         }
       }
+    },
+    "/api/db/auditoriums/buildingID/{id}": {
+      "get": {
+        "tags": ["Auditoriyalar boshqaruvi"],
+        "summary": "Binodagi auditoriyalarni olish (filtrlar bilan)",
+        "description": "Ko‘rsatilgan bino ID bo‘yicha barcha auditoriyalarni qaytaradi. Ixtiyoriy filtrlar qo‘llab-quvvatlanadi.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "Auditoriyalar olinadigan binoning ID si"
+          },
+          {
+            "in": "query",
+            "name": "creatorId",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Auditoriyani yaratgan foydalanuvchi IDsi"
+          },
+          {
+            "in": "query",
+            "name": "department",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Kafedra yoki bo‘lim nomi"
+          },
+          {
+            "in": "query",
+            "name": "capacity",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Minimal sig‘im (masalan: 50)"
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Auditoriya nomi (to‘liq yoki qisman)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Auditoriyalar ro'yxati (filtrlangan)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditoriumDTO"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Notog‘ri yoki yetishmayotgan ID"
+          },
+          "404": {
+            "description": "Auditoriyalar topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -1259,6 +1367,49 @@
           "id": "123e4567-e89b-12d3-a456-426614174000",
           "name": "Asosiy bino",
           "address": "Toshkent, Amir Temur ko'chasi, 10"
+        }
+      },
+      "AuditoriumDTO": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "capacity": { "type": "integer" },
+          "department": { "type": "string" },
+          "hasProjector": { "type": "boolean" },
+          "hasElectronicScreen": { "type": "boolean" },
+          "description": { "type": "string" },
+          "creatorDTO": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "format": "uuid" },
+              "firstname": { "type": "string" },
+              "lastname": { "type": "string" },
+              "role": {
+                "type": "string",
+                "enum": ["admin", "user", "teacher"]
+              },
+              "username": { "type": "string" }
+            }
+          },
+          "buildingDTO": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "address": { "type": "string" },
+              "creatorDTO": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "firstname": { "type": "string" },
+                  "lastname": { "type": "string" },
+                  "role": { "type": "string" },
+                  "username": { "type": "string" }
+                }
+              }
+            }
+          }
         }
       }
     },

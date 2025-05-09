@@ -27,7 +27,7 @@ app.use("/api", routes);
 // });
 
 app.get("/api/for-test/large-json", (req, res) => {
-  const data = generateLargeObject(100000); // katta obyekt
+  const data = generateLargeObject(1000); // katta obyekt
 
   const jsonString = JSON.stringify(data);
   const readable = Readable.from(jsonString);

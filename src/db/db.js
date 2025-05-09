@@ -481,6 +481,104 @@ function createAuditorium(auditorium, user, callback) {
   });
 }
 
+function getAuditoriumsByBuildingId(buildingId, filters, callback) {
+  let selectBuildingSQL = `
+    SELECT a.*,
+      u.firstname AS creatorFirstname, 
+      u.lastname AS creatorLastname, 
+      u.role AS creatorRole, 
+      u.username AS creatorUsername, 
+      u.id AS creatorId,
+
+      b.id AS buildingId,
+      b.name AS buildingName,
+      b.address AS buildingAddress,
+
+      u2.id AS buildingCreatorId,
+      u2.firstname AS buildingCreatorFirstname,
+      u2.lastname AS buildingCreatorLastname,
+      u2.role AS buildingCreatorRole,
+      u2.username AS buildingCreatorUsername
+    FROM auditoriums a
+    LEFT JOIN users u ON a.creatorID = u.id
+    LEFT JOIN buildings b ON a.buildingID = b.id
+    LEFT JOIN users u2 ON b.creatorID = u2.id
+
+    WHERE a.buildingID = ?
+  `;
+
+  const values = [buildingId];
+
+
+  // FILTERLAR
+  if (filters.creatorId) {
+    selectBuildingSQL += " AND a.creatorID = ?";
+    values.push(filters.creatorId);
+  }
+
+  if (filters.department) {
+    selectBuildingSQL += " AND a.department LIKE ?";
+    values.push(`%${filters.department}%`);
+  }
+
+  if (filters.capacity) {
+    selectBuildingSQL += " AND a.capacity >= ?";
+    values.push(filters.capacity);
+  }
+
+  if (filters.name) {
+    selectBuildingSQL += " AND a.name LIKE ?";
+    values.push(`%${filters.name}%`);
+  }
+
+
+  db.all(selectBuildingSQL, values, (err, rows) => {
+    if (err) {
+      return callback(err);
+    }
+
+    if (!rows || rows.length === 0) {
+      return callback(new CustomError(404, "Bu binoda auditoriyalar topilmadi"));
+    }
+
+    const first = rows[0];
+
+    const buildingDTO = {
+      id: first.buildingId || null,
+      name: first.buildingName || null,
+      address: first.buildingAddress || null,
+      creatorDTO: {
+        id: first.buildingCreatorId || null,
+        firstname: first.buildingCreatorFirstname || null,
+        lastname: first.buildingCreatorLastname || null,
+        role: first.buildingCreatorRole || null,
+        username: first.buildingCreatorUsername || null,
+      },
+    };
+
+    const auditoriums = rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      capacity: row.capacity,
+      department: row.department,
+      hasProjector: row.hasProjector,
+      hasElectronicScreen: row.hasElectronicScreen,
+      description: row.description,
+      creatorDTO: {
+        id: row.creatorId || null,
+        firstname: row.creatorFirstname || null,
+        lastname: row.creatorLastname || null,
+        role: row.creatorRole || null,
+        username: row.creatorUsername || null,
+      },
+      buildingDTO
+    }));
+
+    callback(null, auditoriums);
+  });
+}
+
+
 module.exports = {
   db,
   createUser,
@@ -489,5 +587,7 @@ module.exports = {
   deleteBuildingById,
   getBuildingById,
   updateBuildingById,
-  createAuditorium
+  createAuditorium,
+  getAuditoriumsByBuildingId
+
 };

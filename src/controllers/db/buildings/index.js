@@ -102,6 +102,7 @@ function getOneBuildingById(req, res) {
     res.status(status).json({ error: error.message });
   }
 }
+
 function deleteBuildingController(req, res) {
   try {
     const { id } = req.params;
