@@ -7,12 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://37.27.215.130:5545",
-      "description": "Mexroj server MAIN "
-    },
-    {
       "url": "http://localhost:5545",
       "description": "Local server"
+    },
+    {
+      "url": "http://37.27.215.130:5545",
+      "description": "Mexroj server MAIN "
     }
   ],
   "paths": {
@@ -276,6 +276,13 @@
             "description": "Serverda xatolik || O‘chirishda xatolik"
           }
         }
+      }
+    },
+    "/api/for-test/large-json": {
+      "get": {
+        "tags": ["Front-Test"],
+        "summary": "Judayam kop malumot olish",
+        "description": "Loader uchun test"
       }
     },
     "/api/user/compare-password": {
@@ -1160,6 +1167,10 @@
     {
       "name": "Auth",
       "description": "Avtorizatsiya uchun pointlar"
+    },
+    {
+      "name": "Front-Test",
+      "description": "Front-Test"
     }
   ],
   "components": {
