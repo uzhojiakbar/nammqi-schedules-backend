@@ -28,3 +28,5 @@ src/db/database.sqlite
 ./src/db/database.sqlite
 db/database.sqlite
 *.sqlite
+
+yarn.lock
