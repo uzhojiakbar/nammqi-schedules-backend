@@ -39,35 +39,40 @@ const getAuditoriumsByBuildingIdController = (req, res) => {
         const { id } = req.params;
 
         const filters = {
-            creatorId: req.query.creatorId,
-            department: req.query.department,
+            creatorId: req.query.creatorId || undefined,
+            department: req.query.department || undefined,
             capacity: req.query.capacity ? parseInt(req.query.capacity) : undefined,
-            name: req.query.name,
+            name: req.query.name || undefined,
         };
 
+        const page = parseInt(req.query.page, 10) || 1;
+        const size = parseInt(req.query.size, 10) || 10;
 
-        getAuditoriumsByBuildingId(id, filters, (err, auditoriums) => {
+        getAuditoriumsByBuildingId(id, filters, page, size, (err, auditoriums, paginationInfo) => {
             if (err) {
                 if (err instanceof CustomError) {
                     return res.status(err.code).json({ error: err.message });
                 }
-                console.log("xato", err);
-                return res.status(500).json({ error: "Server xatosi" });
+                console.error("Xatolik:", err);
+                return res.status(500).json({ error: "Server xatosi yuz berdi" });
             }
 
-            const json = JSON.stringify(auditoriums); // yoki { size, auditoriums }
+            const responseBody = {
+                auditoriums,
+                ...paginationInfo
+            };
 
-            res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Content-Length', Buffer.byteLength(json)); // bu yerda o‘lchov baytda
+            const json = JSON.stringify(responseBody);
+            res.setHeader("Content-Type", "application/json");
+            res.setHeader("Content-Length", Buffer.byteLength(json, "utf8"));
             res.status(200).send(json);
-
         });
     } catch (error) {
         const status = error.code || 400;
-        res.status(status).json({ error: error.message });
+        res.status(status).json({ error: error.message || "Nomaʼlum xatolik" });
     }
+};
 
-}
 
 
 module.exports = {

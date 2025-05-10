@@ -1226,6 +1226,29 @@
               "type": "string"
             },
             "description": "Auditoriya nomi (to‘liq yoki qisman)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Hozirgi sahifa raqami",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Bir sahifadagi elementlar soni",
+            "required": false
           }
         ],
         "responses": {
@@ -1234,9 +1257,44 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AuditoriumDTO"
+                  "type": "object",
+                  "properties": {
+                    "auditoriums": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AuditoriumDTO"
+                      }
+                    },
+                    "totalCount": {
+                      "type": "integer",
+                      "example": 10,
+                      "description": "Jami binolar soni"
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "example": 12,
+                      "description": "Jami sahifalar soni"
+                    },
+                    "currentPage": {
+                      "type": "integer",
+                      "example": 1,
+                      "description": "Hozirgi sahifa raqami"
+                    },
+                    "pageSize": {
+                      "type": "integer",
+                      "example": 10,
+                      "description": "Har bir sahifadagi elementlar soni"
+                    },
+                    "hasNextPage": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Keyingi sahifa mavjudligi"
+                    },
+                    "hasPreviousPage": {
+                      "type": "boolean",
+                      "example": false,
+                      "description": "Oldingi sahifa mavjudligi"
+                    }
                   }
                 }
               }

@@ -480,9 +480,8 @@ function createAuditorium(auditorium, user, callback) {
     );
   });
 }
-
-function getAuditoriumsByBuildingId(buildingId, filters, callback) {
-  let selectBuildingSQL = `
+function getAuditoriumsByBuildingId(buildingId, filters, page = 1, size = 10, callback) {
+  let selectSQL = `
     SELECT a.*,
       u.firstname AS creatorFirstname, 
       u.lastname AS creatorLastname, 
@@ -503,80 +502,110 @@ function getAuditoriumsByBuildingId(buildingId, filters, callback) {
     LEFT JOIN users u ON a.creatorID = u.id
     LEFT JOIN buildings b ON a.buildingID = b.id
     LEFT JOIN users u2 ON b.creatorID = u2.id
-
     WHERE a.buildingID = ?
   `;
 
-  const values = [buildingId];
+  let countSQL = `
+    SELECT COUNT(*) as totalCount
+    FROM auditoriums a
+    WHERE a.buildingID = ?
+  `;
 
+  const selectValues = [buildingId];
+  const countValues = [buildingId];
 
   // FILTERLAR
   if (filters.creatorId) {
-    selectBuildingSQL += " AND a.creatorID = ?";
-    values.push(filters.creatorId);
+    selectSQL += " AND a.creatorID = ?";
+    countSQL += " AND a.creatorID = ?";
+    selectValues.push(filters.creatorId);
+    countValues.push(filters.creatorId);
   }
 
   if (filters.department) {
-    selectBuildingSQL += " AND a.department LIKE ?";
-    values.push(`%${filters.department}%`);
+    selectSQL += " AND a.department LIKE ?";
+    countSQL += " AND a.department LIKE ?";
+    selectValues.push(`%${filters.department}%`);
+    countValues.push(`%${filters.department}%`);
   }
 
   if (filters.capacity) {
-    selectBuildingSQL += " AND a.capacity >= ?";
-    values.push(filters.capacity);
+    selectSQL += " AND a.capacity >= ?";
+    countSQL += " AND a.capacity >= ?";
+    selectValues.push(filters.capacity);
+    countValues.push(filters.capacity);
   }
 
   if (filters.name) {
-    selectBuildingSQL += " AND a.name LIKE ?";
-    values.push(`%${filters.name}%`);
+    selectSQL += " AND a.name LIKE ?";
+    countSQL += " AND a.name LIKE ?";
+    selectValues.push(`%${filters.name}%`);
+    countValues.push(`%${filters.name}%`);
   }
 
+  const offset = (page - 1) * size;
+  selectSQL += " LIMIT ? OFFSET ?";
+  selectValues.push(size, offset);
 
-  db.all(selectBuildingSQL, values, (err, rows) => {
-    if (err) {
-      return callback(err);
-    }
+  db.get(countSQL, countValues, (countErr, countRow) => {
+    if (countErr) return callback(countErr);
 
-    if (!rows || rows.length === 0) {
-      return callback(new CustomError(404, "Bu binoda auditoriyalar topilmadi"));
-    }
+    const totalCount = countRow?.totalCount || 0;
 
-    const first = rows[0];
+    db.all(selectSQL, selectValues, (err, rows) => {
+      if (err) return callback(err);
 
-    const buildingDTO = {
-      id: first.buildingId || null,
-      name: first.buildingName || null,
-      address: first.buildingAddress || null,
-      creatorDTO: {
-        id: first.buildingCreatorId || null,
-        firstname: first.buildingCreatorFirstname || null,
-        lastname: first.buildingCreatorLastname || null,
-        role: first.buildingCreatorRole || null,
-        username: first.buildingCreatorUsername || null,
-      },
-    };
+      if (!rows || rows.length === 0) {
+        return callback(new CustomError(404, "Bu binoda auditoriyalar topilmadi"));
+      }
 
-    const auditoriums = rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      capacity: row.capacity,
-      department: row.department,
-      hasProjector: row.hasProjector,
-      hasElectronicScreen: row.hasElectronicScreen,
-      description: row.description,
-      creatorDTO: {
-        id: row.creatorId || null,
-        firstname: row.creatorFirstname || null,
-        lastname: row.creatorLastname || null,
-        role: row.creatorRole || null,
-        username: row.creatorUsername || null,
-      },
-      buildingDTO
-    }));
+      const first = rows[0];
+      const buildingDTO = {
+        id: first.buildingId || null,
+        name: first.buildingName || null,
+        address: first.buildingAddress || null,
+        creatorDTO: {
+          id: first.buildingCreatorId || null,
+          firstname: first.buildingCreatorFirstname || null,
+          lastname: first.buildingCreatorLastname || null,
+          role: first.buildingCreatorRole || null,
+          username: first.buildingCreatorUsername || null,
+        },
+      };
 
-    callback(null, auditoriums);
+      const auditoriums = rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        capacity: row.capacity,
+        department: row.department,
+        hasProjector: row.hasProjector,
+        hasElectronicScreen: row.hasElectronicScreen,
+        description: row.description,
+        creatorDTO: {
+          id: row.creatorId || null,
+          firstname: row.creatorFirstname || null,
+          lastname: row.creatorLastname || null,
+          role: row.creatorRole || null,
+          username: row.creatorUsername || null,
+        },
+        buildingDTO,
+      }));
+
+      const totalPages = Math.ceil(totalCount / size);
+      const paginationInfo = {
+        totalCount,
+        totalPages,
+        currentPage: page,
+        pageSize: size,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      };
+
+      callback(null, auditoriums, paginationInfo);
+    });
   });
 }
+
 
 
 module.exports = {
