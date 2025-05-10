@@ -617,6 +617,74 @@ function getAuditoriumsByBuildingId(buildingId, filters, page = 1, size = 10, ca
 }
 
 
+function getAuditoriumById(auditoriumID, callback) {
+  const selectBuildingSQL = `
+     SELECT a.*,
+      u.firstname AS creatorFirstname, 
+      u.lastname AS creatorLastname, 
+      u.role AS creatorRole, 
+      u.username AS creatorUsername, 
+      u.id AS creatorId,
+
+      b.id AS buildingId,
+      b.name AS buildingName,
+      b.address AS buildingAddress,
+
+      u2.id AS buildingCreatorId,
+      u2.firstname AS buildingCreatorFirstname,
+      u2.lastname AS buildingCreatorLastname,
+      u2.role AS buildingCreatorRole,
+      u2.username AS buildingCreatorUsername
+    FROM auditoriums a
+    LEFT JOIN users u ON a.creatorID = u.id
+    LEFT JOIN buildings b ON a.buildingID = b.id
+    LEFT JOIN users u2 ON b.creatorID = u2.id
+    WHERE a.id = ?
+  `;
+
+  db.get(selectBuildingSQL, [auditoriumID], (err, row) => {
+    if (err) {
+      return callback(err);
+    }
+    if (!row) {
+      return callback(new CustomError(404, "Bunday ID bilan auditoriya topilmadi"));
+    }
+
+    const buildingDTO = {
+      id: row.buildingId || null,
+      name: row.buildingName || null,
+      address: row.buildingAddress || null,
+      creatorDTO: {
+        id: row.buildingCreatorId || null,
+        firstname: row.buildingCreatorFirstname || null,
+        lastname: row.buildingCreatorLastname || null,
+        role: row.buildingCreatorRole || null,
+        username: row.buildingCreatorUsername || null,
+      },
+    };
+
+    const result = {
+      id: row.id,
+      name: row.name,
+      capacity: row.capacity,
+      department: row.department,
+      hasProjector: row.hasProjector,
+      hasElectronicScreen: row.hasElectronicScreen,
+      description: row.description,
+      creatorDTO: {
+        id: row.creatorId || null,
+        firstname: row.creatorFirstname || null,
+        lastname: row.creatorLastname || null,
+        role: row.creatorRole || null,
+        username: row.creatorUsername || null,
+      },
+      buildingDTO,
+    }
+
+    callback(null, result);
+  });
+}
+
 function deleteAuditoriumsByBuildingId(buildingId, callback) {
   const deleteAuditoriumsSQL = `
     DELETE FROM auditoriums WHERE buildingID = ?;
@@ -637,6 +705,22 @@ function deleteAuditoriumsByBuildingId(buildingId, callback) {
 
 
 
+function deleteAuditoriumById(auditoriumID, callback) {
+  const deleteBuildingSQL = `
+    DELETE FROM auditoriums WHERE id = ?;
+  `;
+
+  db.run(deleteBuildingSQL, [auditoriumID], function (err) {
+    if (err) {
+      return callback(err);
+    }
+    if (this.changes === 0) {
+      return callback(new CustomError(404, "Bunday ID bilan Audotiriya topilmadi"));
+    }
+    callback(null);
+  });
+}
+
 
 module.exports = {
   db,
@@ -649,5 +733,7 @@ module.exports = {
   updateBuildingById,
   createAuditorium,
   getAuditoriumsByBuildingId,
-  deleteAuditoriumsByBuildingId
+  deleteAuditoriumsByBuildingId,
+  getAuditoriumById,
+  deleteAuditoriumById
 };

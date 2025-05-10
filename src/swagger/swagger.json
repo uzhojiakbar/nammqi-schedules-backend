@@ -7,12 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://37.27.215.130:5545",
-      "description": "Mexroj server MAIN "
-    },
-    {
       "url": "http://localhost:5545",
       "description": "Local server"
+    },
+    {
+      "url": "http://37.27.215.130:5545",
+      "description": "Mexroj server MAIN "
     }
   ],
   "paths": {
@@ -1404,6 +1404,101 @@
           },
           "404": {
             "description": "Bu bino ga tegishli auditoriyalar topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      }
+    },
+    "/api/db/auditoriums/{id}": {
+      "get": {
+        "tags": ["Auditoriyalar boshqaruvi"],
+        "summary": "Bitta auditoriyani olish",
+        "description": "Auditoriya ID si orqali barcha tafsilotlari bilan auditoriya ma’lumotini qaytaradi.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Olish kerak bo‘lgan auditoriyaning ID si"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Auditoriya topildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditoriumDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Noto‘g‘ri yoki yetishmayotgan ID"
+          },
+          "404": {
+            "description": "Bunday ID bilan auditoriya topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Auditoriyalar boshqaruvi"],
+        "summary": "Bitta auditoriyani o'chirish",
+        "description": "Berilgan auditoriya ID si orqali uni tizimdan o'chiradi. Faqat adminlar bajarishi mumkin.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "O'chiriladigan auditoriyaning ID si"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Auditoriya muvaffaqiyatli o'chirildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Auditoriya muvaffaqiyatli o'chirildi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Noto‘g‘ri yoki yetishmayotgan ID"
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Faqat admin foydalanuvchilar kirishi mumkin"
+          },
+          "404": {
+            "description": "Bunday ID bilan auditoriya topilmadi"
           },
           "500": {
             "description": "Serverda xatolik"

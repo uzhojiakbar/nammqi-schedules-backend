@@ -10,7 +10,9 @@ const {
     createAuditorium,
     getAuditoriumsByBuildingId,
     deleteAuditoriumsByBuildingId,
-    getBuildingIdByName
+    getBuildingIdByName,
+    getAuditoriumById,
+    deleteAuditoriumById
 } = require("../../../db/db");
 
 
@@ -107,7 +109,6 @@ const createAuditoriumsFromExcelController = (req, res) => {
 };
 
 
-
 const getAuditoriumsByBuildingIdController = (req, res) => {
     try {
         const { id } = req.params;
@@ -172,10 +173,60 @@ function deleteAuditoriumsByBuildingIdController(req, res) {
 }
 
 
+function getOneAuditoriumByIdController(req, res) {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: "Auditoriya ID majburiy" });
+        }
+
+        getAuditoriumById(id, (err, auditorium) => {
+            if (err) {
+                if (err instanceof CustomError) {
+                    return res.status(err.code).json({ error: err.message });
+                }
+                return res.status(500).json({ error: "Server xatosi" });
+            }
+
+            res.status(200).json({ ...auditorium });
+        });
+    } catch (error) {
+        const status = error.code || 400;
+        res.status(status).json({ error: error.message });
+    }
+}
+
+function deleteAuditoriumsByController(req, res) {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: "Auditoriya ID majburiy" });
+        }
+
+        deleteAuditoriumById(id, (err) => {
+            if (err) {
+                if (err instanceof CustomError) {
+                    return res.status(err.code).json({ error: err.message });
+                }
+                return res.status(500).json({ error: "Server xatosi" });
+            }
+
+            res.status(200).json({ message: "Audotiriya muvaffaqiyatli o'chirildi" });
+        });
+    } catch (error) {
+        const status = error.code || 400;
+        res.status(status).json({ error: error.message });
+    }
+}
+
 
 module.exports = {
     createAuditoriumController,
     getAuditoriumsByBuildingIdController,
     deleteAuditoriumsByBuildingIdController,
-    createAuditoriumsFromExcelController
+    createAuditoriumsFromExcelController,
+    getOneAuditoriumByIdController,
+    deleteAuditoriumsByController
 };

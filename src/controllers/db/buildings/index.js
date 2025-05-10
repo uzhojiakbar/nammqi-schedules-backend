@@ -78,7 +78,6 @@ function getAllBuildingsController(req, res) {
   }
 }
 
-
 function getOneBuildingById(req, res) {
   try {
     const { id } = req.params;

@@ -7,6 +7,8 @@ const {
     getAuditoriumsByBuildingIdController,
     deleteAuditoriumsByBuildingIdController,
     createAuditoriumsFromExcelController,
+    getOneAuditoriumByIdController,
+    deleteAuditoriumsByController,
 } = require("../../../controllers/db/auditoriums/index.js");
 const {
     authenticateToken,
@@ -34,6 +36,18 @@ router.post(
 router.get(
     "/buildingID/:id",
     getAuditoriumsByBuildingIdController
+);
+
+router.get(
+    "/:id",
+    getOneAuditoriumByIdController
+);
+
+router.delete(
+    "/:id",
+    authenticateToken,
+    authorizeAdmin,
+    deleteAuditoriumsByController
 );
 
 
