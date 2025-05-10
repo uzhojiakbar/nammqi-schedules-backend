@@ -9,6 +9,7 @@ const {
     createAuditoriumsFromExcelController,
     getOneAuditoriumByIdController,
     deleteAuditoriumsByController,
+    updateAuditoriumByIdController,
 } = require("../../../controllers/db/auditoriums/index.js");
 const {
     authenticateToken,
@@ -48,6 +49,14 @@ router.delete(
     authenticateToken,
     authorizeAdmin,
     deleteAuditoriumsByController
+);
+
+
+router.patch(
+    "/:id",
+    authenticateToken,
+    authorizeAdmin,
+    updateAuditoriumByIdController
 );
 
 

@@ -721,6 +721,59 @@ function deleteAuditoriumById(auditoriumID, callback) {
   });
 }
 
+const updateAuditoriumById = (id, updates, callback) => {
+  const allowedFields = [
+    "name",
+    "buildingID",
+    "capacity",
+    "department",
+    "hasProjector",
+    "hasElectronicScreen",
+    "description"
+  ];
+
+  const fieldsToUpdate = [];
+  const values = [];
+
+  for (const key of allowedFields) {
+    if (key in updates) {
+      fieldsToUpdate.push(`${key} = ?`);
+      values.push(updates[key]);
+    }
+  }
+
+  if (fieldsToUpdate.length === 0) {
+    return callback(new CustomError(400, "Yangi ma'lumotlar topilmadi"));
+  }
+
+  const updateSQL = `
+    UPDATE auditoriums
+    SET ${fieldsToUpdate.join(", ")}
+    WHERE id = ?
+  `;
+
+  values.push(id);
+
+  db.run(updateSQL, values, function (err) {
+    if (err) {
+      console.error("Auditoriya yangilashda xatolik:", err.message);
+      return callback(new CustomError(500, "Auditoriya yangilashda xatolik"));
+    }
+
+    if (this.changes === 0) {
+      return callback(new CustomError(404, "Bunday ID bilan auditoriya topilmadi"));
+    }
+
+    // Updated auditoriya qaytariladi
+    db.get("SELECT * FROM auditoriums WHERE id = ?", [id], (err, row) => {
+      if (err || !row) {
+        return callback(new CustomError(500, "Yangilangan auditoriya topilmadi"));
+      }
+      callback(null, row);
+    });
+  });
+};
+
 
 module.exports = {
   db,
@@ -735,5 +788,6 @@ module.exports = {
   getAuditoriumsByBuildingId,
   deleteAuditoriumsByBuildingId,
   getAuditoriumById,
-  deleteAuditoriumById
+  deleteAuditoriumById,
+  updateAuditoriumById
 };

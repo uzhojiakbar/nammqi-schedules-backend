@@ -1504,6 +1504,107 @@
             "description": "Serverda xatolik"
           }
         }
+      },
+      "patch": {
+        "tags": ["Auditoriyalar boshqaruvi"],
+        "summary": "Bitta auditoriyani yangilash (qisman)",
+        "description": "Auditoriya ID si orqali quyidagi maydonlarni yangilaydi: nomi, bino IDsi, sig‘imi, kafedra, proektor va ekran mavjudligi, izoh.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Yangilanadigan auditoriyaning ID si"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Auditoriya nomi"
+                  },
+                  "buildingID": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Tegishli bino IDsi"
+                  },
+                  "capacity": {
+                    "type": "integer",
+                    "description": "Sig‘imi (musbat son)"
+                  },
+                  "department": {
+                    "type": "string",
+                    "description": "Kafedra yoki bo‘lim nomi"
+                  },
+                  "hasProjector": {
+                    "type": "integer",
+                    "enum": [0, 1],
+                    "description": "Proektor mavjudligi (0 yoki 1)"
+                  },
+                  "hasElectronicScreen": {
+                    "type": "integer",
+                    "enum": [0, 1],
+                    "description": "Elektron ekran mavjudligi (0 yoki 1)"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Izoh (ixtiyoriy)"
+                  }
+                },
+                "example": {
+                  "name": "Xona 209",
+                  "buildingID": "c176d33e-498f-4a9e-89e0-b6f6b98ffabc",
+                  "capacity": 60,
+                  "department": "Fizika",
+                  "hasProjector": 1,
+                  "hasElectronicScreen": 0,
+                  "description": "Yangilangan xona"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Auditoriya muvaffaqiyatli yangilandi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditoriumDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Noto‘g‘ri ma’lumot yoki invalid ID"
+          },
+          "401": {
+            "description": "Avtorizatsiya xatosi"
+          },
+          "403": {
+            "description": "Faqat admin foydalanuvchilar uchun ruxsat"
+          },
+          "404": {
+            "description": "Auditoriya topilmadi"
+          },
+          "500": {
+            "description": "Serverdagi xatolik"
+          }
+        }
       }
     }
   },

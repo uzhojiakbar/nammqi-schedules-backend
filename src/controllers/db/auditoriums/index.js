@@ -12,7 +12,8 @@ const {
     deleteAuditoriumsByBuildingId,
     getBuildingIdByName,
     getAuditoriumById,
-    deleteAuditoriumById
+    deleteAuditoriumById,
+    updateAuditoriumById
 } = require("../../../db/db");
 
 
@@ -221,6 +222,26 @@ function deleteAuditoriumsByController(req, res) {
     }
 }
 
+const updateAuditoriumByIdController = (req, res) => {
+    const { id } = req.params;
+    const updates = req.body;
+
+    if (!id) {
+        return res.status(400).json({ error: "ID yuborilmadi" });
+    }
+
+    updateAuditoriumById(id, updates, (err, updated) => {
+        if (err) {
+            if (err instanceof CustomError) {
+                return res.status(err.code).json({ error: err.message });
+            }
+            return res.status(500).json({ error: "Serverda xatolik yuz berdi" });
+        }
+
+        res.status(200).json(updated);
+    });
+};
+
 
 module.exports = {
     createAuditoriumController,
@@ -228,5 +249,6 @@ module.exports = {
     deleteAuditoriumsByBuildingIdController,
     createAuditoriumsFromExcelController,
     getOneAuditoriumByIdController,
-    deleteAuditoriumsByController
+    deleteAuditoriumsByController,
+    updateAuditoriumByIdController
 };
