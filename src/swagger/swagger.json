@@ -1178,6 +1178,50 @@
         }
       }
     },
+    "/api/db/auditoriums/add-bulk": {
+      "post": {
+        "tags": ["Auditoriyalar boshqaruvi"],
+        "summary": "Excel (.xlsx) fayli orqali auditoriyalarni ommaviy qo‘shish",
+        "description": "Admin foydalanuvchi .xlsx formatdagi faylni yuklab, auditoriyalarni backend orqali qo‘shadi",
+        "operationId": "uploadAuditoriumsExcel",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Excel fayl (.xlsx). Ustunlar: name, buildingID, capacity, department, hasProjector, hasElectronicScreen, description"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "207": {
+            "description": "Qisman muvaffaqiyatli — ba'zilar muvaffaqiyatli, ba'zilar xatolik bilan"
+          },
+          "400": {
+            "description": "Fayl yuborilmadi yoki noto‘g‘ri format"
+          },
+          "401": {
+            "description": "Token xatosi"
+          },
+          "500": {
+            "description": "Serverda ichki xatolik"
+          }
+        }
+      }
+    },
     "/api/db/auditoriums/buildingID/{id}": {
       "get": {
         "tags": ["Auditoriyalar boshqaruvi"],

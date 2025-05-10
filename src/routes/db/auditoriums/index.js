@@ -1,21 +1,33 @@
 const express = require("express");
+const multer = require("multer");
+const router = express.Router();
+
 const {
     createAuditoriumController,
     getAuditoriumsByBuildingIdController,
     deleteAuditoriumsByBuildingIdController,
+    createAuditoriumsFromExcelController,
 } = require("../../../controllers/db/auditoriums/index.js");
 const {
     authenticateToken,
     authorizeAdmin,
 } = require("../../../middleware/auth");
 
-const router = express.Router();
 
 router.post(
     "/add",
     authenticateToken,
     authorizeAdmin,
     createAuditoriumController
+);
+
+const upload = multer({ dest: "uploads/" }); // vaqtincha yuklash
+router.post(
+    "/add-bulk",
+    authenticateToken,
+    authorizeAdmin,
+    upload.single("file"),
+    createAuditoriumsFromExcelController
 );
 
 

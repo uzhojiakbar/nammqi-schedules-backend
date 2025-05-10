@@ -1,10 +1,16 @@
 const { CustomError } = require("../../../components/customError");
 
+const xlsx = require("xlsx");
+const fs = require("fs");
+const path = require("path");
+
+
 const {
     db,
     createAuditorium,
     getAuditoriumsByBuildingId,
-    deleteAuditoriumsByBuildingId
+    deleteAuditoriumsByBuildingId,
+    getBuildingIdByName
 } = require("../../../db/db");
 
 
@@ -33,6 +39,74 @@ const createAuditoriumController = (req, res) => {
     }
 
 }
+
+const createAuditoriumsFromExcelController = (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "Excel fayl yuborilmadi" });
+        }
+
+        const filePath = path.resolve(req.file.path);
+        const workbook = xlsx.readFile(filePath);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+
+        const rows = rawData.slice(1).filter(row => {
+            return Array.isArray(row) && row.some(cell => cell !== null && cell !== "");
+        });
+        const headers = rawData[0];
+
+        const results = [];
+        const errors = [];
+
+        const insertNext = (index) => {
+            if (index >= rows.length) {
+                fs.unlinkSync(filePath);
+                return res.status(207).json({ results, errors });
+            }
+
+            const row = rows[index];
+
+            // 👇 Bu yerda indekslar orqali har bir qiymat olinadi
+            const auditorium = {
+                name: row[1],
+                buildingName: row[2],
+                capacity: row[4] || 0,
+                department: row[3] || "",
+                hasProjector: row[5] || 0,
+                hasElectronicScreen: row[6] || 0,
+                description: row[7] || null
+            };
+            getBuildingIdByName(auditorium.buildingName, (err, buildingID) => {
+                if (err) {
+                    errors.push({ index, message: err.message });
+                    return insertNext(index + 1);
+                }
+
+                // ID ni joyiga qo‘yamiz
+                auditorium.buildingID = buildingID;
+
+                createAuditorium(auditorium, req.userInfo, (err, result) => {
+                    if (err) {
+                        errors.push({ index, message: err.message });
+                    } else {
+                        results.push(result);
+                    }
+
+                    insertNext(index + 1);
+                });
+            });
+        };
+
+
+        insertNext(0);
+    } catch (error) {
+        console.error("Excel faylni o‘qishda xatolik:", error.message);
+        res.status(500).json({ error: "Excel faylni qayta ishlashda xatolik yuz berdi" });
+    }
+};
+
+
 
 const getAuditoriumsByBuildingIdController = (req, res) => {
     try {
@@ -73,7 +147,6 @@ const getAuditoriumsByBuildingIdController = (req, res) => {
     }
 };
 
-
 function deleteAuditoriumsByBuildingIdController(req, res) {
     try {
         const { id } = req.params;
@@ -98,8 +171,11 @@ function deleteAuditoriumsByBuildingIdController(req, res) {
     }
 }
 
+
+
 module.exports = {
     createAuditoriumController,
     getAuditoriumsByBuildingIdController,
-    deleteAuditoriumsByBuildingIdController
+    deleteAuditoriumsByBuildingIdController,
+    createAuditoriumsFromExcelController
 };

@@ -297,6 +297,15 @@ function getBuildingById(buildingId, callback) {
   });
 }
 
+const getBuildingIdByName = (buildingName, callback) => {
+  db.get("SELECT id FROM buildings WHERE name = ?", [buildingName], (err, row) => {
+    if (err) return callback(new CustomError(500, "Bazada xatolik"));
+    if (!row) return callback(new CustomError(400, `Bino topilmadi: ${buildingName}`));
+    callback(null, row.id);
+  });
+};
+
+
 function deleteBuildingById(buildingId, callback) {
   const deleteBuildingSQL = `
     DELETE FROM buildings WHERE id = ?;
@@ -635,6 +644,7 @@ module.exports = {
   createBuilding,
   getAllBuildings,
   deleteBuildingById,
+  getBuildingIdByName,
   getBuildingById,
   updateBuildingById,
   createAuditorium,
