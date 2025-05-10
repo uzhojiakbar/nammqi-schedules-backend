@@ -29,8 +29,58 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     createAccessTokenTable();
     createBuildingsTable();
     createAuditoriumsTable();
+
+    // 
+
+    createTeachersTable()
+    createGroupsTable()
+    createSubjectsTable()
+    createSchedulesTable()
+    createDaysTable()
+    createTimeSlotsTable()
+
+    // Static jadval to‘ldirish
+    seedDays();
+    seedTimeSlots();
   }
 });
+
+function seedDays() {
+  const days = [
+    { id: 1, name: "Monday" },
+    { id: 2, name: "Tuesday" },
+    { id: 3, name: "Wednesday" },
+    { id: 4, name: "Thursday" },
+    { id: 5, name: "Friday" },
+    { id: 6, name: "Saturday" }
+  ];
+
+  days.forEach(({ id, name }) => {
+    db.run("INSERT OR IGNORE INTO days (id, name) VALUES (?, ?)", [id, name]);
+  });
+}
+
+function seedTimeSlots() {
+  const slots = [
+    { shift: 1, lessonNumber: 1, start: "08:30", end: "09:50" },
+    { shift: 1, lessonNumber: 2, start: "10:00", end: "11:20" },
+    { shift: 1, lessonNumber: 3, start: "11:30", end: "12:50" },
+    { shift: 1, lessonNumber: 4, start: "13:30", end: "14:50" },
+    { shift: 1, lessonNumber: 5, start: "15:00", end: "16:20" },
+    { shift: 1, lessonNumber: 6, start: "16:30", end: "17:50" },
+    { shift: 2, lessonNumber: 1, start: "17:00", end: "18:30" },
+    { shift: 2, lessonNumber: 2, start: "18:40", end: "20:10" },
+    { shift: 2, lessonNumber: 3, start: "20:20", end: "21:50" }
+  ];
+
+  slots.forEach(({ shift, lessonNumber, start, end }) => {
+    db.run(
+      "INSERT OR IGNORE INTO time_slots (shift, lessonNumber, startTime, endTime) VALUES (?, ?, ?, ?)",
+      [shift, lessonNumber, start, end]
+    );
+  });
+}
+
 
 function createUsersTable() {
   const createTableSQL = `
@@ -298,13 +348,19 @@ function getBuildingById(buildingId, callback) {
 }
 
 const getBuildingIdByName = (buildingName, callback) => {
-  db.get("SELECT id FROM buildings WHERE name = ?", [buildingName], (err, row) => {
-    if (err) return callback(new CustomError(500, "Bazada xatolik"));
-    if (!row) return callback(new CustomError(400, `Bino topilmadi: ${buildingName}`));
-    callback(null, row.id);
-  });
+  db.get(
+    "SELECT id FROM buildings WHERE name = ?",
+    [buildingName],
+    (err, row) => {
+      if (err) return callback(new CustomError(500, "Bazada xatolik"));
+      if (!row)
+        return callback(
+          new CustomError(400, `Bino topilmadi: ${buildingName}`)
+        );
+      callback(null, row.id);
+    }
+  );
 };
-
 
 function deleteBuildingById(buildingId, callback) {
   const deleteBuildingSQL = `
@@ -363,7 +419,6 @@ function updateBuildingById(buildingId, updates, callback) {
   });
 }
 
-
 // AUDITORIUMS CONTROLLER
 
 // AUDITORIYALAR jadvalini yaratish
@@ -388,7 +443,10 @@ function createAuditoriumsTable() {
 
   db.run(createTableSQL, (err) => {
     if (err) {
-      console.error("❌ Auditoriyalar jadvalini yaratishda xatolik:", err.message);
+      console.error(
+        "❌ Auditoriyalar jadvalini yaratishda xatolik:",
+        err.message
+      );
     } else {
       console.log("✅ Auditoriyalar jadvali tayyor");
     }
@@ -409,13 +467,21 @@ function createAuditorium(auditorium, user, callback) {
   } = auditorium;
 
   function validateAuditorium(auditorium, callbackInner) {
-
-    db.get("SELECT id FROM buildings WHERE id = ?", [buildingID], (err, buildingRow) => {
-      if (err) return callbackInner(new CustomError(500, "Bazada xatolik yuz berdi"));
-      if (!buildingRow) {
-        return callbackInner(new CustomError(400, `Bunday IDdagi bino topilmadi: ${buildingID}`));
+    db.get(
+      "SELECT id FROM buildings WHERE id = ?",
+      [buildingID],
+      (err, buildingRow) => {
+        if (err)
+          return callbackInner(
+            new CustomError(500, "Bazada xatolik yuz berdi")
+          );
+        if (!buildingRow) {
+          return callbackInner(
+            new CustomError(400, `Bunday IDdagi bino topilmadi: ${buildingID}`)
+          );
+        }
       }
-    })
+    );
 
     const requiredFields = [
       { key: "name", label: "Xona nomi" },
@@ -490,7 +556,13 @@ function createAuditorium(auditorium, user, callback) {
   });
 }
 
-function getAuditoriumsByBuildingId(buildingId, filters, page = 1, size = 10, callback) {
+function getAuditoriumsByBuildingId(
+  buildingId,
+  filters,
+  page = 1,
+  size = 10,
+  callback
+) {
   let selectSQL = `
     SELECT a.*,
       u.firstname AS creatorFirstname, 
@@ -566,7 +638,9 @@ function getAuditoriumsByBuildingId(buildingId, filters, page = 1, size = 10, ca
       if (err) return callback(err);
 
       if (!rows || rows.length === 0) {
-        return callback(new CustomError(404, "Bu binoda auditoriyalar topilmadi"));
+        return callback(
+          new CustomError(404, "Bu binoda auditoriyalar topilmadi")
+        );
       }
 
       const first = rows[0];
@@ -616,7 +690,6 @@ function getAuditoriumsByBuildingId(buildingId, filters, page = 1, size = 10, ca
   });
 }
 
-
 function getAuditoriumById(auditoriumID, callback) {
   const selectBuildingSQL = `
      SELECT a.*,
@@ -647,7 +720,9 @@ function getAuditoriumById(auditoriumID, callback) {
       return callback(err);
     }
     if (!row) {
-      return callback(new CustomError(404, "Bunday ID bilan auditoriya topilmadi"));
+      return callback(
+        new CustomError(404, "Bunday ID bilan auditoriya topilmadi")
+      );
     }
 
     const buildingDTO = {
@@ -679,7 +754,7 @@ function getAuditoriumById(auditoriumID, callback) {
         username: row.creatorUsername || null,
       },
       buildingDTO,
-    }
+    };
 
     callback(null, result);
   });
@@ -696,14 +771,14 @@ function deleteAuditoriumsByBuildingId(buildingId, callback) {
     }
 
     if (this.changes === 0) {
-      return callback(new CustomError(404, "Bu bino ga tegishli auditoriyalar topilmadi"));
+      return callback(
+        new CustomError(404, "Bu bino ga tegishli auditoriyalar topilmadi")
+      );
     }
 
     callback(null);
   });
 }
-
-
 
 function deleteAuditoriumById(auditoriumID, callback) {
   const deleteBuildingSQL = `
@@ -715,7 +790,9 @@ function deleteAuditoriumById(auditoriumID, callback) {
       return callback(err);
     }
     if (this.changes === 0) {
-      return callback(new CustomError(404, "Bunday ID bilan Audotiriya topilmadi"));
+      return callback(
+        new CustomError(404, "Bunday ID bilan Audotiriya topilmadi")
+      );
     }
     callback(null);
   });
@@ -729,7 +806,7 @@ const updateAuditoriumById = (id, updates, callback) => {
     "department",
     "hasProjector",
     "hasElectronicScreen",
-    "description"
+    "description",
   ];
 
   const fieldsToUpdate = [];
@@ -761,18 +838,433 @@ const updateAuditoriumById = (id, updates, callback) => {
     }
 
     if (this.changes === 0) {
-      return callback(new CustomError(404, "Bunday ID bilan auditoriya topilmadi"));
+      return callback(
+        new CustomError(404, "Bunday ID bilan auditoriya topilmadi")
+      );
     }
 
     // Updated auditoriya qaytariladi
     db.get("SELECT * FROM auditoriums WHERE id = ?", [id], (err, row) => {
       if (err || !row) {
-        return callback(new CustomError(500, "Yangilangan auditoriya topilmadi"));
+        return callback(
+          new CustomError(500, "Yangilangan auditoriya topilmadi")
+        );
       }
       callback(null, row);
     });
   });
 };
+
+
+// SCHEDULES
+
+
+
+function createTeachersTable() {
+  const createTableSQL = `
+  CREATE TABLE IF NOT EXISTS teachers (
+    id TEXT PRIMARY KEY,
+    fullName TEXT NOT NULL UNIQUE
+  );
+  `;
+
+  db.run(createTableSQL, (err) => {
+    if (err) {
+      console.error("❌ Teachers Jadval yaratishda xatolik:", err.message);
+    } else {
+      console.log("✅ Teachers jadvali tayyor");
+    }
+  });
+}
+
+
+function createGroupsTable() {
+  const createTableSQL = `
+    CREATE TABLE IF NOT EXISTS groups (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE
+    );
+  `;
+
+  db.run(createTableSQL, (err) => {
+    if (err) {
+      console.error("❌ Groups Jadval yaratishda xatolik:", err.message);
+    } else {
+      console.log("✅ Groups jadvali tayyor");
+    }
+  });
+}
+
+function createSubjectsTable() {
+  const createTableSQL = `
+    CREATE TABLE IF NOT EXISTS subjects (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      UNIQUE(name, type)
+    );
+  `;
+
+  db.run(createTableSQL, (err) => {
+    if (err) {
+      console.error("❌ Subjects Jadval yaratishda xatolik:", err.message);
+    } else {
+      console.log("✅ Subjects jadvali tayyor");
+    }
+  });
+}
+
+function createTimeSlotsTable() {
+  const createTableSQL = `
+    CREATE TABLE IF NOT EXISTS time_slots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      shift INTEGER NOT NULL CHECK(shift IN (1, 2)), 
+      lessonNumber INTEGER NOT NULL,                 
+      startTime TEXT NOT NULL,                      
+      endTime TEXT NOT NULL,
+      UNIQUE(shift, lessonNumber)
+    );
+  `;
+
+  //  -- 1 = kunduzgi, 2 = kechki
+  // -- 1 to 6
+  //  -- "08:30"
+
+  db.run(createTableSQL, (err) => {
+    if (err) {
+      console.error("❌ time_slots Jadval yaratishda xatolik:", err.message);
+    } else {
+      console.log("✅ time_slots jadvali tayyor");
+    }
+  });
+}
+
+function createDaysTable() {
+  const createTableSQL = `
+    CREATE TABLE IF NOT EXISTS  days (
+      id INTEGER PRIMARY KEY, -- 1 = Monday ... 6 = Saturday
+      name TEXT NOT NULL UNIQUE
+    );
+  `;
+
+  db.run(createTableSQL, (err) => {
+    if (err) {
+      console.error("❌ Days Jadval yaratishda xatolik:", err.message);
+    } else {
+      console.log("✅ Days jadvali tayyor");
+    }
+  });
+}
+
+
+function createSchedulesTable() {
+  db.run("PRAGMA foreign_keys = ON");
+
+
+  const createTableSQL = `
+    CREATE TABLE IF NOT EXISTS  schedules (
+    id TEXT PRIMARY KEY,
+
+    groupID TEXT NOT NULL,
+    subjectID TEXT NOT NULL,
+    teacherID TEXT NOT NULL,
+    auditoriumID TEXT NOT NULL,
+    dayID INTEGER NOT NULL,
+    timeSlotID INTEGER NOT NULL,
+
+    weekType TEXT NOT NULL CHECK(weekType IN ('odd', 'even')),
+    shift INTEGER NOT NULL CHECK(shift IN (1, 2)),
+    startDate DATE NOT NULL,
+    endDate DATE NOT NULL,
+    description TEXT,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY(groupID) REFERENCES groups(id),
+    FOREIGN KEY(subjectID) REFERENCES subjects(id),
+    FOREIGN KEY(teacherID) REFERENCES teachers(id),
+    FOREIGN KEY(auditoriumID) REFERENCES auditoriums(id),
+    FOREIGN KEY(dayID) REFERENCES days(id),
+    FOREIGN KEY(timeSlotID) REFERENCES time_slots(id)
+  );
+  `;
+
+  db.run(createTableSQL, (err) => {
+    if (err) {
+      console.error("❌ Schedules Jadval yaratishda xatolik:", err.message);
+    } else {
+      console.log("✅ Schedules jadvali tayyor");
+    }
+  });
+}
+
+
+// eh, boshladik, Bismillah...
+// TEACHER
+function getAllTeachers(callback) {
+  db.all("SELECT id, fullName FROM teachers ORDER BY fullName ASC", [], (err, rows) => {
+    if (err) return callback(err);
+    callback(null, rows);
+  });
+}
+
+function createOrGetTeacher(fullName, callback) {
+  db.get("SELECT id FROM teachers WHERE fullName = ?", [fullName], (err, row) => {
+    if (err) return callback(err);
+    if (row) return callback(null, row.id);
+
+    const id = uuidv4();
+    db.run("INSERT INTO teachers (id, fullName) VALUES (?, ?)", [id, fullName], (err) => {
+      if (err) return callback(err);
+      callback(null, id);
+    });
+  });
+}
+
+// GROUP
+function createOrGetGroup(name, callback) {
+  db.get("SELECT id FROM groups WHERE name = ?", [name], (err, row) => {
+    if (err) return callback(err);
+    if (row) return callback(null, row.id);
+
+    const id = uuidv4();
+    db.run("INSERT INTO groups (id, name) VALUES (?, ?)", [id, name], (err) => {
+      if (err) return callback(err);
+      callback(null, id);
+    });
+  });
+}
+
+function getAllGroups(callback) {
+  db.all("SELECT id, name FROM groups ORDER BY name ASC", [], (err, rows) => {
+    if (err) return callback(err);
+    callback(null, rows);
+  });
+}
+
+// SUBJECT
+function createOrGetSubject(name, type, callback) {
+  db.get("SELECT id FROM subjects WHERE name = ? AND type = ?", [name, type], (err, row) => {
+    if (err) return callback(err);
+    if (row) return callback(null, row.id);
+
+    const id = uuidv4();
+    db.run("INSERT INTO subjects (id, name, type) VALUES (?, ?, ?)", [id, name, type], (err) => {
+      if (err) return callback(err);
+      callback(null, id);
+    });
+  });
+}
+
+function getAllSubjects(callback) {
+  db.all("SELECT id, name, type FROM subjects ORDER BY name ASC", [], (err, rows) => {
+    if (err) return callback(err);
+    callback(null, rows);
+  });
+}
+
+function checkConflict(data, callback) {
+  const {
+    dayID,
+    timeSlotID,
+    shift,
+    weekType,
+    startDate,
+    endDate,
+    auditoriumID,
+    teacherID,
+    groupID
+  } = data;
+
+  const query = `
+    SELECT id, 'auditorium' AS conflictType FROM schedules
+    WHERE
+      dayID = ?
+      AND timeSlotID = ?
+      AND shift = ?
+      AND weekType = ?
+      AND auditoriumID = ?
+      AND (
+        startDate <= ? AND endDate >= ?
+      )
+    UNION
+    SELECT id, 'teacher' AS conflictType FROM schedules
+    WHERE
+      dayID = ?
+      AND timeSlotID = ?
+      AND shift = ?
+      AND weekType = ?
+      AND teacherID = ?
+      AND (
+        startDate <= ? AND endDate >= ?
+      )
+    UNION
+    SELECT id, 'group' AS conflictType FROM schedules
+    WHERE
+      dayID = ?
+      AND timeSlotID = ?
+      AND shift = ?
+      AND weekType = ?
+      AND groupID = ?
+      AND (
+        startDate <= ? AND endDate >= ?
+      )
+    LIMIT 1
+  `;
+
+  const values = [
+    // auditorium conflict
+    dayID, timeSlotID, shift, weekType, auditoriumID, endDate, startDate,
+    // teacher conflict
+    dayID, timeSlotID, shift, weekType, teacherID, endDate, startDate,
+    // group conflict
+    dayID, timeSlotID, shift, weekType, groupID, endDate, startDate
+  ];
+
+  db.get(query, values, (err, row) => {
+    if (err) return callback(err);
+    if (row) {
+      const messages = {
+        auditorium: "❌ Bu vaqtda bu auditoriyada dars bor",
+        teacher: "❌ Bu o‘qituvchining boshqa darsi bor",
+        group: "❌ Bu guruhda bu vaqtda boshqa dars bor"
+      };
+      return callback(new CustomError(400, messages[row.conflictType] || "❌ Jadval ziddiyati mavjud"));
+    }
+    callback(null);
+  });
+}
+
+
+function insertSchedule(data, callback) {
+  const id = uuidv4();
+  const {
+    groupID, subjectID, teacherID, auditoriumID,
+    dayID, timeSlotID, shift, weekType, startDate, endDate, description
+  } = data;
+
+  const query = `
+    INSERT INTO schedules (
+      id, groupID, subjectID, teacherID, auditoriumID,
+      dayID, timeSlotID, shift, weekType, startDate, endDate, description
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    id, groupID, subjectID, teacherID, auditoriumID,
+    dayID, timeSlotID, shift, weekType, startDate, endDate, description || null
+  ];
+
+  db.run(query, values, (err) => {
+    if (err) return callback(err);
+    callback(null, { id });
+  });
+}
+
+function addSchedule(scheduleData, callback) {
+  const weekTypes = scheduleData.weekType === "both" ? ["odd", "even"] : [scheduleData.weekType];
+  const results = [];
+
+  const insertNext = (index) => {
+    if (index >= weekTypes.length) return callback(null, results);
+
+    const currentType = weekTypes[index];
+    const data = { ...scheduleData, weekType: currentType };
+
+    checkConflict(data, (err) => {
+      if (err) return callback(err);
+
+      insertSchedule(data, (err, result) => {
+        if (err) return callback(err);
+        results.push(result);
+        insertNext(index + 1);
+      });
+    });
+  };
+
+  insertNext(0);
+}
+
+
+// GET SCHEDULE
+
+function getWeeklySchedule({ buildingID, weekType, shift, startDate, endDate }, callback) {
+  const query = `
+    SELECT
+      s.dayID,
+      s.timeSlotID,
+      s.startDate,
+      s.endDate,
+      s.description,
+      d.name AS dayName,
+      ts.lessonNumber,
+
+      g.name AS groupName,
+      t.fullName AS teacher,
+      sub.name AS subject,
+      sub.type AS subjectType,
+      a.name AS auditorium
+
+    FROM schedules s
+    JOIN groups g ON s.groupID = g.id
+    JOIN teachers t ON s.teacherID = t.id
+    JOIN subjects sub ON s.subjectID = sub.id
+    JOIN auditoriums a ON s.auditoriumID = a.id
+    JOIN days d ON s.dayID = d.id
+    JOIN time_slots ts ON s.timeSlotID = ts.id
+
+    WHERE
+      a.buildingID = ?
+      AND s.shift = ?
+      AND s.weekType = ?
+      AND s.startDate <= ?
+      AND s.endDate >= ?
+    ORDER BY s.dayID, ts.lessonNumber
+  `;
+
+  const params = [buildingID, shift, weekType, endDate, startDate];
+
+  db.all(query, params, (err, rows) => {
+    if (err) return callback(err);
+
+    const result = {
+      startDate,
+      endDate,
+      shift,
+      buildingID,
+      weekType,
+      days: {}
+    };
+
+    const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const maxPara = shift === 1 ? 6 : 3;
+
+    // Avval null bilan to‘ldiramiz
+    for (const day of dayNames) {
+      result.days[day] = {};
+      for (let i = 1; i <= maxPara; i++) {
+        result.days[day][i] = null;
+      }
+    }
+
+    // Endi mavjudlarni qo‘shamiz
+    for (const row of rows) {
+      result.days[row.dayName][row.lessonNumber] = {
+        subject: row.subject,
+        type: row.subjectType,
+        teacher: row.teacher,
+        group: row.groupName,
+        auditorium: row.auditorium,
+        startDate: row.startDate,
+        endDate: row.endDate,
+        description: row.description || null
+      };
+    }
+
+    callback(null, result);
+  });
+}
+
 
 
 module.exports = {
@@ -789,5 +1281,10 @@ module.exports = {
   deleteAuditoriumsByBuildingId,
   getAuditoriumById,
   deleteAuditoriumById,
-  updateAuditoriumById
+  updateAuditoriumById,
+  createOrGetTeacher,
+  createOrGetGroup,
+  createOrGetSubject,
+  addSchedule,
+  getWeeklySchedule
 };

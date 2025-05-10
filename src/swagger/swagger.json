@@ -7,12 +7,12 @@
   },
   "servers": [
     {
-      "url": "http://37.27.215.130:5545",
-      "description": "Mexroj server MAIN "
-    },
-    {
       "url": "http://localhost:5545",
       "description": "Local server"
+    },
+    {
+      "url": "http://37.27.215.130:5545",
+      "description": "Mexroj server MAIN "
     }
   ],
   "paths": {
@@ -1222,195 +1222,6 @@
         }
       }
     },
-    "/api/db/auditoriums/buildingID/{id}": {
-      "get": {
-        "tags": ["Auditoriyalar boshqaruvi"],
-        "summary": "Binodagi auditoriyalarni olish (filtrlar bilan)",
-        "description": "Ko‘rsatilgan bino ID bo‘yicha barcha auditoriyalarni qaytaradi. Ixtiyoriy filtrlar qo‘llab-quvvatlanadi.",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "required": true,
-            "description": "Auditoriyalar olinadigan binoning ID si"
-          },
-          {
-            "in": "query",
-            "name": "creatorId",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "description": "Auditoriyani yaratgan foydalanuvchi IDsi"
-          },
-          {
-            "in": "query",
-            "name": "department",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Kafedra yoki bo‘lim nomi"
-          },
-          {
-            "in": "query",
-            "name": "capacity",
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Minimal sig‘im (masalan: 50)"
-          },
-          {
-            "in": "query",
-            "name": "name",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Auditoriya nomi (to‘liq yoki qisman)"
-          },
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Hozirgi sahifa raqami",
-            "required": false
-          },
-          {
-            "in": "query",
-            "name": "size",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            },
-            "description": "Bir sahifadagi elementlar soni",
-            "required": false
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Auditoriyalar ro'yxati (filtrlangan)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "auditoriums": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/AuditoriumDTO"
-                      }
-                    },
-                    "totalCount": {
-                      "type": "integer",
-                      "example": 10,
-                      "description": "Jami binolar soni"
-                    },
-                    "totalPages": {
-                      "type": "integer",
-                      "example": 12,
-                      "description": "Jami sahifalar soni"
-                    },
-                    "currentPage": {
-                      "type": "integer",
-                      "example": 1,
-                      "description": "Hozirgi sahifa raqami"
-                    },
-                    "pageSize": {
-                      "type": "integer",
-                      "example": 10,
-                      "description": "Har bir sahifadagi elementlar soni"
-                    },
-                    "hasNextPage": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Keyingi sahifa mavjudligi"
-                    },
-                    "hasPreviousPage": {
-                      "type": "boolean",
-                      "example": false,
-                      "description": "Oldingi sahifa mavjudligi"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Notog‘ri yoki yetishmayotgan ID"
-          },
-          "404": {
-            "description": "Auditoriyalar topilmadi"
-          },
-          "500": {
-            "description": "Serverda xatolik"
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Auditoriyalar boshqaruvi"],
-        "summary": "Binodagi AUditoriyalarni o'chirish",
-        "description": "Binoni ID orqali undagi barcha AUditoriyalarnio'chirish.",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            },
-            "required": true,
-            "description": "binoning ID si"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "{id} binosiga tegishli barcha auditoriyalar muvaffaqiyatli o'chirildi",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "{id} binosiga tegishli barcha auditoriyalar muvaffaqiyatli o'chirildi"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bino ID yuborilmagan yoki noto'g'ri"
-          },
-          "401": {
-            "description": "Token yuborilmagan yoki noto‘g‘ri"
-          },
-          "403": {
-            "description": "Faqat adminlar kirishi mumkin"
-          },
-          "404": {
-            "description": "Bu bino ga tegishli auditoriyalar topilmadi"
-          },
-          "500": {
-            "description": "Serverda xatolik"
-          }
-        }
-      }
-    },
     "/api/db/auditoriums/{id}": {
       "get": {
         "tags": ["Auditoriyalar boshqaruvi"],
@@ -1606,6 +1417,371 @@
           }
         }
       }
+    },
+    "/api/db/auditoriums/buildingID/{id}": {
+      "get": {
+        "tags": ["Auditoriyalar boshqaruvi"],
+        "summary": "Binodagi auditoriyalarni olish (filtrlar bilan)",
+        "description": "Ko‘rsatilgan bino ID bo‘yicha barcha auditoriyalarni qaytaradi. Ixtiyoriy filtrlar qo‘llab-quvvatlanadi.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "Auditoriyalar olinadigan binoning ID si"
+          },
+          {
+            "in": "query",
+            "name": "creatorId",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Auditoriyani yaratgan foydalanuvchi IDsi"
+          },
+          {
+            "in": "query",
+            "name": "department",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Kafedra yoki bo‘lim nomi"
+          },
+          {
+            "in": "query",
+            "name": "capacity",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Minimal sig‘im (masalan: 50)"
+          },
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Auditoriya nomi (to‘liq yoki qisman)"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Hozirgi sahifa raqami",
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Bir sahifadagi elementlar soni",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Auditoriyalar ro'yxati (filtrlangan)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "auditoriums": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AuditoriumDTO"
+                      }
+                    },
+                    "totalCount": {
+                      "type": "integer",
+                      "example": 10,
+                      "description": "Jami binolar soni"
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "example": 12,
+                      "description": "Jami sahifalar soni"
+                    },
+                    "currentPage": {
+                      "type": "integer",
+                      "example": 1,
+                      "description": "Hozirgi sahifa raqami"
+                    },
+                    "pageSize": {
+                      "type": "integer",
+                      "example": 10,
+                      "description": "Har bir sahifadagi elementlar soni"
+                    },
+                    "hasNextPage": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Keyingi sahifa mavjudligi"
+                    },
+                    "hasPreviousPage": {
+                      "type": "boolean",
+                      "example": false,
+                      "description": "Oldingi sahifa mavjudligi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Notog‘ri yoki yetishmayotgan ID"
+          },
+          "404": {
+            "description": "Auditoriyalar topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Auditoriyalar boshqaruvi"],
+        "summary": "Binodagi AUditoriyalarni o'chirish",
+        "description": "Binoni ID orqali undagi barcha AUditoriyalarnio'chirish.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "description": "binoning ID si"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{id} binosiga tegishli barcha auditoriyalar muvaffaqiyatli o'chirildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "{id} binosiga tegishli barcha auditoriyalar muvaffaqiyatli o'chirildi"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bino ID yuborilmagan yoki noto'g'ri"
+          },
+          "401": {
+            "description": "Token yuborilmagan yoki noto‘g‘ri"
+          },
+          "403": {
+            "description": "Faqat adminlar kirishi mumkin"
+          },
+          "404": {
+            "description": "Bu bino ga tegishli auditoriyalar topilmadi"
+          },
+          "500": {
+            "description": "Serverda xatolik"
+          }
+        }
+      }
+    },
+    "/api/db/schedules": {
+      "post": {
+        "tags": ["Dars jadvali"],
+        "summary": "Yangi dars jadvalini qo‘shish",
+        "description": "Guruh, fan, o‘qituvchi, vaqt va auditoriya asosida yangi dars qo‘shadi. Auditoriya ID orqali kiritiladi.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "group": { "type": "string", "example": "36-att-23" },
+                  "subject": { "type": "string", "example": "Matematika" },
+                  "subjectType": {
+                    "type": "string",
+                    "enum": ["maruza", "amaliy", "tajriba", "seminar"]
+                  },
+                  "teacher": { "type": "string", "example": "Azizbek Karimov" },
+                  "auditoriumID": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "c0e5e3b3-fda3-4b9e-b181-a91d2ce33e4a"
+                  },
+                  "dayID": { "type": "integer", "example": 2 },
+                  "timeSlotID": { "type": "integer", "example": 3 },
+                  "shift": { "type": "integer", "enum": [1, 2] },
+                  "weekType": {
+                    "type": "string",
+                    "enum": ["odd", "even", "both"]
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2024-01-01"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date",
+                    "example": "2024-04-26"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Maruza 2-semestr uchun"
+                  }
+                },
+                "required": [
+                  "group",
+                  "subject",
+                  "subjectType",
+                  "teacher",
+                  "auditoriumID",
+                  "dayID",
+                  "timeSlotID",
+                  "shift",
+                  "weekType",
+                  "startDate",
+                  "endDate"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Dars jadvali muvaffaqiyatli qo‘shildi"
+          },
+          "400": {
+            "description": "Noto‘g‘ri ma’lumot yoki ziddiyatli vaqt"
+          },
+          "500": {
+            "description": "Serverdagi xatolik"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Dars jadvali"],
+        "summary": "Haftalik dars jadvalini olish",
+        "description": "Bino, hafta turi, smena va sana oraliqqa qarab dars jadvalini kunlik va para bo‘yicha struktura holatida qaytaradi.",
+        "parameters": [
+          {
+            "name": "buildingID",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "shift",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "enum": [1, 2]
+            }
+          },
+          {
+            "name": "weekType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["odd", "even"]
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Jadval muvaffaqiyatli qaytarildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "startDate": { "type": "string", "format": "date" },
+                    "endDate": { "type": "string", "format": "date" },
+                    "shift": { "type": "integer", "example": 1 },
+                    "buildingID": { "type": "string" },
+                    "weekType": { "type": "string", "example": "odd" },
+                    "days": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "1": {
+                            "type": "object",
+                            "properties": {
+                              "subject": { "type": "string" },
+                              "type": { "type": "string" },
+                              "teacher": { "type": "string" },
+                              "group": { "type": "string" },
+                              "auditorium": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Majburiy parametrlar yetishmayapti"
+          },
+          "500": {
+            "description": "Serverdagi xatolik"
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -1620,6 +1796,10 @@
     {
       "name": "Auditoriyalar boshqaruvi",
       "description": "Auditoriyalar bilan bog'liq API pointlar"
+    },
+    {
+      "name": "Dars jadvali",
+      "description": "Dars jadvali bilan bog'liq API pointlar"
     },
     {
       "name": "User",
@@ -1762,6 +1942,69 @@
                 }
               }
             }
+          }
+        }
+      },
+      "ScheduleDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "e73c8a60-0415-4373-8ad0-25feee0c35ff"
+          },
+          "groupID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "teacherID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "auditoriumID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dayID": {
+            "type": "integer",
+            "example": 3,
+            "description": "1 = Monday, ..., 6 = Saturday"
+          },
+          "timeSlotID": {
+            "type": "integer",
+            "example": 2
+          },
+          "shift": {
+            "type": "integer",
+            "enum": [1, 2],
+            "description": "1 = Kunduzgi, 2 = Kechki"
+          },
+          "weekType": {
+            "type": "string",
+            "enum": ["odd", "even"]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2024-01-01"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2024-04-26"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "2-semestr uchun amaliy mashg‘ulot"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }
