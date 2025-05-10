@@ -480,6 +480,7 @@ function createAuditorium(auditorium, user, callback) {
     );
   });
 }
+
 function getAuditoriumsByBuildingId(buildingId, filters, page = 1, size = 10, callback) {
   let selectSQL = `
     SELECT a.*,
@@ -607,6 +608,26 @@ function getAuditoriumsByBuildingId(buildingId, filters, page = 1, size = 10, ca
 }
 
 
+function deleteAuditoriumsByBuildingId(buildingId, callback) {
+  const deleteAuditoriumsSQL = `
+    DELETE FROM auditoriums WHERE buildingID = ?;
+  `;
+
+  db.run(deleteAuditoriumsSQL, [buildingId], function (err) {
+    if (err) {
+      return callback(err);
+    }
+
+    if (this.changes === 0) {
+      return callback(new CustomError(404, "Bu bino ga tegishli auditoriyalar topilmadi"));
+    }
+
+    callback(null);
+  });
+}
+
+
+
 
 module.exports = {
   db,
@@ -617,6 +638,6 @@ module.exports = {
   getBuildingById,
   updateBuildingById,
   createAuditorium,
-  getAuditoriumsByBuildingId
-
+  getAuditoriumsByBuildingId,
+  deleteAuditoriumsByBuildingId
 };

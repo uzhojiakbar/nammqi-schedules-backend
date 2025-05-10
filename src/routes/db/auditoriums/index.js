@@ -2,6 +2,7 @@ const express = require("express");
 const {
     createAuditoriumController,
     getAuditoriumsByBuildingIdController,
+    deleteAuditoriumsByBuildingIdController,
 } = require("../../../controllers/db/auditoriums/index.js");
 const {
     authenticateToken,
@@ -21,6 +22,14 @@ router.post(
 router.get(
     "/buildingID/:id",
     getAuditoriumsByBuildingIdController
+);
+
+
+router.delete(
+    "/buildingID/:id",
+    authenticateToken,
+    authorizeAdmin,
+    deleteAuditoriumsByBuildingIdController
 );
 
 

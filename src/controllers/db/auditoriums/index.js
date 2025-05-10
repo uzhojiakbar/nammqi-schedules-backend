@@ -3,7 +3,8 @@ const { CustomError } = require("../../../components/customError");
 const {
     db,
     createAuditorium,
-    getAuditoriumsByBuildingId
+    getAuditoriumsByBuildingId,
+    deleteAuditoriumsByBuildingId
 } = require("../../../db/db");
 
 
@@ -32,7 +33,6 @@ const createAuditoriumController = (req, res) => {
     }
 
 }
-
 
 const getAuditoriumsByBuildingIdController = (req, res) => {
     try {
@@ -74,8 +74,32 @@ const getAuditoriumsByBuildingIdController = (req, res) => {
 };
 
 
+function deleteAuditoriumsByBuildingIdController(req, res) {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: "Bino ID majburiy" });
+        }
+
+        deleteAuditoriumsByBuildingId(id, (err) => {
+            if (err) {
+                if (err instanceof CustomError) {
+                    return res.status(err.code).json({ error: err.message });
+                }
+                return res.status(500).json({ error: "Server xatosi" });
+            }
+
+            res.status(200).json({ message: id + " binosiga tegishli barcha auditoriyalar muvaffaqiyatli o'chirildi" });
+        });
+    } catch (error) {
+        const status = error.code || 400;
+        res.status(status).json({ error: error.message });
+    }
+}
 
 module.exports = {
     createAuditoriumController,
-    getAuditoriumsByBuildingIdController
+    getAuditoriumsByBuildingIdController,
+    deleteAuditoriumsByBuildingIdController
 };
