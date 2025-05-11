@@ -1716,7 +1716,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "enum": ["odd", "even"]
+              "enum": ["odd", "even", "both"]
             }
           },
           {
@@ -1750,7 +1750,7 @@
                     "endDate": { "type": "string", "format": "date" },
                     "shift": { "type": "integer", "example": 1 },
                     "buildingID": { "type": "string" },
-                    "weekType": { "type": "string", "example": "odd" },
+                    "weekType": { "type": "string", "example": "both" },
                     "days": {
                       "type": "object",
                       "additionalProperties": {
@@ -1779,6 +1779,121 @@
           },
           "500": {
             "description": "Serverdagi xatolik"
+          }
+        }
+      }
+    },
+    "/api/db/schedules/weekly": {
+      "get": {
+        "tags": ["Dars jadvali"],
+        "summary": "Binodagi haftalik dars jadvali (auditoriya bo‘yicha)",
+        "description": "Berilgan sanaga qarab hafta oralig‘ini (Dushanba–Yakshanba) aniqlab, binodagi auditoriyalar uchun darslar ro‘yxatini qaytaradi.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "buildingID",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Binoning ID raqami"
+          },
+          {
+            "name": "shift",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "enum": [1, 2]
+            },
+            "description": "1 = Kunduzgi, 2 = Kechki"
+          },
+          {
+            "name": "startWeek",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Haftaning istalgan kuni (default — bugungi sana)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Haftalik jadval muvaffaqiyatli qaytarildi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "buildingID": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "weekNumber": {
+                      "type": "integer",
+                      "description": "Yildagi hafta tartib raqami"
+                    },
+                    "weekStartDate": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "weekEndDate": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "shift": {
+                      "type": "integer",
+                      "enum": [1, 2]
+                    },
+                    "lessons": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "description": "Hafta kunlari bo‘yicha darslar",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "scheduleId": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "timeSlot": {
+                                "type": "integer"
+                              },
+                              "subject": {
+                                "type": "string"
+                              },
+                              "teacher": {
+                                "type": "string"
+                              },
+                              "isThisTeacher": {
+                                "type": "boolean"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Xatolik: majburiy parametrlar yoki noto‘g‘ri format"
+          },
+          "500": {
+            "description": "Serverdagi ichki xatolik"
           }
         }
       }
@@ -1985,7 +2100,7 @@
           },
           "weekType": {
             "type": "string",
-            "enum": ["odd", "even"]
+            "enum": ["both", "odd", "even"]
           },
           "startDate": {
             "type": "string",

@@ -4,7 +4,8 @@ const {
     createOrGetGroup,
     createOrGetSubject,
     addSchedule,
-    getWeeklySchedule
+    getWeeklySchedule,
+    getScheduleForWeeklyView
 } = require("../../../db/db");
 
 const addScheduleController = (req, res) => {
@@ -106,10 +107,67 @@ const getWeeklyScheduleController = (req, res) => {
     }
 };
 
+const getWeeklyScheduleByAuditoriumsController = (req, res) => {
+    try {
+        const { buildingID, shift, startWeek } = req.query;
+        const userID = req?.userInfo?.id || undefined; // JWT token orqali foydalanuvchi ID
+
+        console.log("USER ID", req?.userInfo);
+
+
+        if (!buildingID || !shift) {
+            throw new CustomError(400, "buildingID va shift majburiy");
+        }
+
+        const today = startWeek ? new Date(startWeek) : new Date();
+        if (isNaN(today)) {
+            throw new CustomError(400, "startWeek noto‘g‘ri formatda");
+        }
+
+        // Haftaning bosh va oxirini aniqlash
+        const day = today.getDay(); // 0 = yakshanba, 1 = dushanba ...
+        const diffToMonday = day === 0 ? -6 : 1 - day;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + diffToMonday);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+
+        const weekStartDate = monday.toISOString().slice(0, 10);
+        const weekEndDate = sunday.toISOString().slice(0, 10);
+
+        const weekNumber = Math.ceil(
+            (monday - new Date(monday.getFullYear(), 0, 1)) / (7 * 24 * 60 * 60 * 1000)
+        );
+
+        getScheduleForWeeklyView(
+            {
+                buildingID,
+                shift: Number(shift),
+                startDate: weekStartDate,
+                endDate: weekEndDate,
+                userID
+            },
+            (err, lessons) => {
+                if (err) {
+                    return res.status(err.code || 500).json({ error: err.message });
+                }
+
+                res.status(200).json({
+                    ...lessons
+                });
+            }
+        );
+    } catch (error) {
+        const status = typeof error.code === "number" ? error.code : 500;
+        res.status(status).json({ error: error.message });
+    }
+};
+
 
 
 
 module.exports = {
     addScheduleController,
-    getWeeklyScheduleController
+    getWeeklyScheduleController,
+    getWeeklyScheduleByAuditoriumsController
 };

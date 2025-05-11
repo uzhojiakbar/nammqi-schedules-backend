@@ -67,7 +67,94 @@ function authorizeAdmin(req, res, next) {
   next();
 }
 
+function authenticateTokenJustCheckAndSkip(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  console.log("TOKEN", token);
+
+
+  if (!token) {
+    req.userInfo = {
+
+    };
+    next();
+    return;
+  }
+
+  findAccessToken(token, (err, tokenData) => {
+    if (err) {
+      req.userInfo = {
+
+      };
+      next();
+      return;
+    }
+
+    if (!tokenData) {
+      req.userInfo = {
+
+      };
+      next();
+      return;
+    }
+
+    const now = new Date();
+    const expiresAt = new Date(tokenData.expires_at);
+
+    if (expiresAt < now) {
+      req.userInfo = {
+
+      };
+      next();
+      return;
+
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        req.userInfo = {
+
+        };
+        next();
+        return;
+      }
+
+      req.user = decoded;
+      req.token = token;
+
+      const selectUserQuery = `
+        SELECT id, username, firstname, lastname, role
+        FROM users WHERE id = ?
+      `;
+
+      db.get(selectUserQuery, [decoded.sub], (dbErr, userInfo) => {
+        if (dbErr) {
+          req.userInfo = {
+
+          };
+          next();
+          return;
+
+        }
+
+        if (!userInfo) {
+          req.userInfo = {
+
+          };
+          next();
+          return;
+        }
+
+        req.userInfo = userInfo;
+        next();
+      });
+    });
+  });
+}
+
 module.exports = {
   authenticateToken,
   authorizeAdmin,
+  authenticateTokenJustCheckAndSkip
 };

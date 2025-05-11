@@ -226,6 +226,7 @@ const updateAuditoriumByIdController = (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
+
     if (!id) {
         return res.status(400).json({ error: "ID yuborilmadi" });
     }
@@ -237,6 +238,7 @@ const updateAuditoriumByIdController = (req, res) => {
             }
             return res.status(500).json({ error: "Serverda xatolik yuz berdi" });
         }
+
 
         res.status(200).json(updated);
     });

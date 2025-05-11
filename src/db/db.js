@@ -5,6 +5,8 @@ const sqlite3 = require("sqlite3").verbose();
 const { v4: uuidv4 } = require("uuid");
 const { CustomError } = require("../components/customError");
 const { userFindByUsername, insertUser } = require("./queries");
+const { transliterate } = require("transliteration");
+const bcrypt = require("bcryptjs");
 
 const DB_PATH = process.env.DATABASE_URL;
 
@@ -799,6 +801,7 @@ function deleteAuditoriumById(auditoriumID, callback) {
 }
 
 const updateAuditoriumById = (id, updates, callback) => {
+
   const allowedFields = [
     "name",
     "buildingID",
@@ -1007,18 +1010,63 @@ function getAllTeachers(callback) {
   });
 }
 
+
+// 
+function generateUniqueUsername(baseUsername, attempt = 0, callback) {
+  const candidate = attempt === 0 ? baseUsername : `${baseUsername}${attempt}`;
+  db.get("SELECT id FROM users WHERE username = ?", [candidate], (err, row) => {
+    if (err) return callback(err);
+    if (!row) return callback(null, candidate);
+    generateUniqueUsername(baseUsername, attempt + 1, callback);
+  });
+}
+
+function parseNameParts(fullName) {
+  const parts = fullName.trim().split(/\s+/);
+  return {
+    firstname: parts[0] || "",
+    lastname: parts[1] || ""
+  };
+}
+
+
 function createOrGetTeacher(fullName, callback) {
   db.get("SELECT id FROM teachers WHERE fullName = ?", [fullName], (err, row) => {
     if (err) return callback(err);
     if (row) return callback(null, row.id);
 
     const id = uuidv4();
-    db.run("INSERT INTO teachers (id, fullName) VALUES (?, ?)", [id, fullName], (err) => {
+    const { firstname, lastname } = parseNameParts(fullName);
+    const baseUsername = transliterate(fullName.replace(/['"`.,]/g, "").toLowerCase());
+
+    generateUniqueUsername(baseUsername, 0, (err, uniqueUsername) => {
       if (err) return callback(err);
-      callback(null, id);
+
+      const rawPassword = uniqueUsername;
+
+      bcrypt.hash(rawPassword, 10, (err, hashedPassword) => {
+        if (err) return callback(err);
+
+        // ⬇️ Dastlab o‘qituvchini qo‘shamiz
+        db.run("INSERT INTO teachers (id, fullName) VALUES (?, ?)", [id, fullName], (err) => {
+          if (err) return callback(err);
+
+          // ⬇️ Endi user qo‘shamiz
+          db.run(
+            `INSERT INTO users (id, username, password, firstname, lastname, role)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [id, uniqueUsername, hashedPassword, firstname, lastname, "user"],
+            (err) => {
+              if (err) return callback(err);
+              callback(null, id);
+            }
+          );
+        });
+      });
     });
   });
 }
+
 
 // GROUP
 function createOrGetGroup(name, callback) {
@@ -1125,7 +1173,7 @@ function checkConflict(data, callback) {
     if (row) {
       const messages = {
         auditorium: "❌ Bu vaqtda bu auditoriyada dars bor",
-        teacher: "❌ Bu o‘qituvchining boshqa darsi bor",
+        teacher: "❌ Bu o‘qituvchining bu vaqtda boshqa darsi bor",
         group: "❌ Bu guruhda bu vaqtda boshqa dars bor"
       };
       return callback(new CustomError(400, messages[row.conflictType] || "❌ Jadval ziddiyati mavjud"));
@@ -1141,6 +1189,10 @@ function insertSchedule(data, callback) {
     groupID, subjectID, teacherID, auditoriumID,
     dayID, timeSlotID, shift, weekType, startDate, endDate, description
   } = data;
+
+  if (new Date(endDate) <= new Date(startDate)) {
+    return callback(new CustomError(400, "Tugash vaqti boshlanish vaqtidan keyin bo`lishi kerak"));
+  }
 
   const query = `
     INSERT INTO schedules (
@@ -1184,7 +1236,6 @@ function addSchedule(scheduleData, callback) {
 
   insertNext(0);
 }
-
 
 // GET SCHEDULE
 
@@ -1266,6 +1317,107 @@ function getWeeklySchedule({ buildingID, weekType, shift, startDate, endDate }, 
 }
 
 
+function getWeekNumber(date) {
+  const oneJan = new Date(date.getFullYear(), 0, 1);
+  const janFirstDay = oneJan.getDay() || 7;
+  const firstMonday = new Date(oneJan);
+  firstMonday.setDate(oneJan.getDate() + (janFirstDay > 1 ? 8 - janFirstDay : 0));
+
+  const diffInMs = date - firstMonday;
+  const diffInDays = Math.floor(diffInMs / (24 * 60 * 60 * 1000));
+
+  return diffInDays >= 0 ? Math.floor(diffInDays / 7) + 1 : 1;
+}
+
+function getWeekType(date) {
+  const weekNumber = getWeekNumber(date);
+  return weekNumber % 2 === 1 ? "odd" : "even";
+}
+
+function getScheduleForWeeklyView({ buildingID, shift, startDate, userID }, callback) {
+  const start = new Date(startDate);
+  const weekDay = start.getDay();
+  const mondayOffset = weekDay === 0 ? -6 : 1 - weekDay;
+  const monday = new Date(start);
+  monday.setDate(start.getDate() + mondayOffset);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const weekStartDate = monday.toISOString().slice(0, 10);
+  const weekEndDate = sunday.toISOString().slice(0, 10);
+  const weekNumber = getWeekNumber(monday);
+  const weekType = getWeekType(monday);
+
+
+  const query = `
+    SELECT
+      s.id AS scheduleId,
+      s.timeSlotID,
+      s.teacherID,
+      s.dayID,
+      d.name AS dayName,
+      sub.name AS subject,
+      t.fullName AS teacher,
+      a.name AS auditoriumName,
+      s.weekType
+    FROM schedules s
+    JOIN subjects sub ON s.subjectID = sub.id
+    JOIN teachers t ON s.teacherID = t.id
+    JOIN auditoriums a ON s.auditoriumID = a.id
+    JOIN days d ON s.dayID = d.id
+    WHERE a.buildingID = ?
+      AND s.shift = ?
+      AND s.startDate <= ?
+      AND s.endDate >= ?
+      AND (s.weekType = 'both' OR s.weekType = ?)
+    ORDER BY a.name, s.dayID, s.timeSlotID
+  `;
+
+  const params = [buildingID, shift, weekEndDate, weekStartDate, weekType];
+
+  db.all(query, params, (err, rows) => {
+    if (err) return callback(err);
+
+    const result = {};
+    const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const maxSlot = shift === 1 ? 6 : 3;
+
+    db.all("SELECT name FROM auditoriums WHERE buildingID = ?", [buildingID], (err2, auditoriums) => {
+      if (err2) return callback(err2);
+
+      for (const { name: auditorium } of auditoriums) {
+        result[auditorium] = {};
+        for (const day of dayNames) {
+          result[auditorium][day] = Array(maxSlot).fill(null);
+        }
+      }
+
+      for (const row of rows) {
+        const { auditoriumName, dayName, timeSlotID } = row;
+        const daySlots = result[auditoriumName]?.[dayName];
+        if (!daySlots) continue;
+
+        daySlots[timeSlotID - 1] = {
+          scheduleId: row.scheduleId,
+          timeSlot: timeSlotID,
+          subject: row.subject,
+          teacher: row.teacher,
+          isThisTeacher: row.teacherID === userID
+        };
+      }
+
+      callback(null, {
+        buildingID,
+        shift,
+        weekNumber,
+        weekStartDate,
+        weekEndDate,
+        weekType,
+        lessons: result
+      });
+    });
+  });
+}
 
 module.exports = {
   db,
@@ -1286,5 +1438,6 @@ module.exports = {
   createOrGetGroup,
   createOrGetSubject,
   addSchedule,
-  getWeeklySchedule
+  getWeeklySchedule,
+  getScheduleForWeeklyView
 };
