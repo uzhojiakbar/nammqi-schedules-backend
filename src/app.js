@@ -34,9 +34,8 @@ app.get("/api/for-test/large-json", (req, res) => {
 
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Content-Length", Buffer.byteLength(jsonString));
-  res.setHeader('Content-Type', 'application/json');
-  res.setHeader('Transfer-Encoding', 'chunked');
-
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Transfer-Encoding", "chunked");
 
   readable.pipe(res);
 });
