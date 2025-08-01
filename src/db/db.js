@@ -1045,6 +1045,14 @@ function createOrGetTeacher(fullName, callback) {
         bcrypt.hash(rawPassword, 10, (err, hashedPassword) => {
           if (err) return callback(err);
 
+          console.log("TEACHER CREATE", {
+            id,
+            uniqueUsername,
+            hashedPassword,
+            firstname,
+            lastname,
+          });
+
           // ⬇️ Dastlab o‘qituvchini qo‘shamiz
           db.run(
             "INSERT INTO teachers (id, fullName) VALUES (?, ?)",
